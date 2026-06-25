@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import MarkdownIt from 'markdown-it';
 import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { Loading } from '../../lib/components/Loading';
@@ -7,6 +7,7 @@ import { isBlank } from '../../lib/validation';
 import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
 import { Icon } from '../../app/icons';
+import { useDropzone } from '../../lib/useDropzone';
 import { buildMarkdownFile } from './mdFile';
 import { generateMarkdownPdf } from './generate';
 
@@ -26,6 +27,18 @@ export function MarkdownTool() {
   const [error, setError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const handleMdFileDrop = useCallback((files: File[]) => {
+    const f = files.find((file) => file.name.endsWith('.md') || file.type === 'text/markdown');
+    if (!f) return;
+    void f.text().then((content) => {
+      setText(content);
+      setFileName(f.name.replace(/\.md$/i, ''));
+      setError('');
+    });
+  }, [setText, setFileName]);
+
+  const { isOver: isMdOver, dropzoneProps: mdDropProps } = useDropzone(handleMdFileDrop);
 
   const md = useMemo(() => new MarkdownIt({ breaks: true }), []);
   const html = useMemo(() => md.render(text), [md, text]);
@@ -146,11 +159,12 @@ export function MarkdownTool() {
 
       <div className={`md-split${mode !== 'split' ? ' is-single' : ''}`}>
         {mode !== 'preview' && (
-          <div className="md-editor">
+          <div className={`md-editor${isMdOver ? ' is-md-drop' : ''}`} {...mdDropProps}>
+            {isMdOver && <div className="md-drop-overlay">.md ファイルをドロップして読み込む</div>}
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder={'# 見出し\n\n本文と **強調**、- リスト、表、```コード``` などに対応します。'}
+              placeholder={'# 見出し\n\n本文と **強調**、- リスト、表、```コード``` などに対応します。\n\n.md ファイルをドラッグ&ドロップして読み込むこともできます。'}
             />
           </div>
         )}
