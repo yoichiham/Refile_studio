@@ -1,4 +1,5 @@
 import { useRef, type ChangeEvent, type KeyboardEvent } from 'react';
+import { Icon } from '../../app/icons';
 import { useDropzone } from '../useDropzone';
 
 interface ImageUploadCardProps {
@@ -55,9 +56,11 @@ export function ImageUploadCard({
       ) : (
         <div className="upload-empty">
           <div className="upload-empty-icon" aria-hidden>
-            🖼️
+            <Icon name="image" size={32} />
           </div>
-          <div>画像をドラッグ&ドロップ、またはクリックして選択{multiple ? '（複数可）' : ''}</div>
+          <div className="upload-empty-label">
+            画像をドラッグ&ドロップ、またはクリックして選択{multiple ? '（複数可）' : ''}
+          </div>
           <div className="upload-hint">PNG / JPEG / WebP / GIF / BMP（最大10MB）</div>
         </div>
       )}

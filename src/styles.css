@@ -18,6 +18,7 @@
   --radius: 12px;
   --radius-sm: 8px;
   --sidebar-w: 256px;
+  --sidebar-mini-w: 60px;
   --topbar-h: 60px;
 }
 
@@ -68,10 +69,43 @@ button {
   top: 0;
   height: 100vh;
   padding: 14px 12px;
+  overflow: hidden;
+  transition: width 0.2s ease, padding 0.2s ease;
 }
 
+/* collapsed = アイコンのみの mini サイドバー（非表示ではなく幅を縮める） */
 .app.is-collapsed .sidebar {
+  width: var(--sidebar-mini-w);
+  padding: 14px 6px;
+}
+
+.app.is-collapsed .sidebar-head {
+  justify-content: center;
+}
+
+.app.is-collapsed .brand {
   display: none;
+}
+
+.app.is-collapsed .nav-group-head {
+  display: none;
+}
+
+.app.is-collapsed .nav-label {
+  display: none;
+}
+
+.app.is-collapsed .nav-item {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.app.is-collapsed .nav-group-items {
+  padding: 2px 4px;
+}
+
+.app.is-collapsed .nav-icon {
+  width: auto;
 }
 
 .sidebar-head {
@@ -166,9 +200,10 @@ button {
   gap: 10px;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
-  color: var(--text);
+  color: var(--text-muted);
   text-decoration: none;
-  font-size: 13.5px;
+  font-size: 14px;
+  font-weight: 600;
   transition:
     background 0.12s ease,
     color 0.12s ease;
@@ -241,8 +276,14 @@ button {
 .topbar-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
+}
+
+/* collapsed 時にもトップバーのハンバーガーが常に見えるよう padding 調整 */
+.topbar .hamburger {
+  flex-shrink: 0;
+  margin-right: 4px;
 }
 
 .topbar-icon {
@@ -440,13 +481,22 @@ button {
 }
 
 .upload-empty {
-  color: var(--text-muted);
+  color: var(--text-faint);
   padding: 28px 0;
 }
 
 .upload-empty-icon {
-  font-size: 30px;
-  margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+  color: var(--text-faint);
+  margin-bottom: 10px;
+}
+
+.upload-empty-label {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-faint);
+  margin-bottom: 4px;
 }
 
 .upload-thumb {
@@ -858,6 +908,17 @@ input[type='range'] {
 .topbar-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.topbar-btn.is-copied {
+  color: var(--teal);
+  background: var(--teal-soft);
+  animation: copy-pop 0.25s ease-out;
+}
+
+@keyframes copy-pop {
+  0% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 .btn-row {

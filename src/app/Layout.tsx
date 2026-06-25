@@ -51,6 +51,7 @@ export function Layout() {
                   <NavLink
                     key={tool.id}
                     to={`/${tool.id}`}
+                    title={tool.title}
                     className={({ isActive }) => `nav-item${isActive ? ' is-active' : ''}`}
                   >
                     <span className="nav-icon">

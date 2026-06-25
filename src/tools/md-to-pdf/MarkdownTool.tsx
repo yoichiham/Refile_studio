@@ -25,6 +25,7 @@ export function MarkdownTool() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const md = useMemo(() => new MarkdownIt({ breaks: true }), []);
   const html = useMemo(() => md.render(text), [md, text]);
@@ -58,7 +59,11 @@ export function MarkdownTool() {
   };
 
   const handleCopy = () => {
-    void navigator.clipboard?.writeText(text);
+    if (!text || copied) return;
+    void navigator.clipboard?.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    });
   };
 
   useEffect(() => {
@@ -88,8 +93,13 @@ export function MarkdownTool() {
       ),
       actions: (
         <>
-          <button type="button" className="topbar-btn" onClick={handleCopy} disabled={!text}>
-            <Icon name="copy" size={15} /> COPY
+          <button
+            type="button"
+            className={`topbar-btn${copied ? ' is-copied' : ''}`}
+            onClick={handleCopy}
+            disabled={!text}
+          >
+            {copied ? '☑️ COPIED' : <><Icon name="copy" size={15} /> COPY</>}
           </button>
           <div className="export-menu">
             <button
@@ -126,7 +136,7 @@ export function MarkdownTool() {
         </>
       ),
     },
-    [text, busy, mode, menuOpen, fileName],
+    [text, busy, mode, menuOpen, fileName, copied],
   );
 
   return (
