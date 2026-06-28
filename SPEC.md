@@ -103,6 +103,7 @@
 - **書き出し（EXPORT）**
   - EXPORT ドロップダウンから「Markdown (.md)」または「PDF」を選択してダウンロード。
   - `.md` 出力：テキストエリアの内容を `.md` として Blob 生成 → ダウンロード。
+    - **Windows 文字化け対策**：先頭に UTF-8 BOM（EF BB BF）を付与し、改行を CRLF に正規化する。これにより Windows のメモ帳など UTF-8 を自動判定しないアプリでも文字化けせず開ける（BOM・CRLF はいずれも Markdown として正しく解釈される）。
   - PDF 出力：Markdown を解析 → pdfmake でベクターPDF生成（Noto Sans JP 埋め込み） → ダウンロード。
     - 見出し / リスト / 表 / コードブロックを装飾。**テキスト選択・検索可能**。
     - 日本語：Noto Sans JP を埋め込み（vfs へ動的登録）し文字化けを防止。
