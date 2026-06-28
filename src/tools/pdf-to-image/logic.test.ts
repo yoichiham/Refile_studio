@@ -2,11 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { pageFileName, renderSettings } from './logic';
 
 describe('renderSettings', () => {
+  it('低画質は 96dpi / JPEG 70%', () => {
+    expect(renderSettings('low')).toEqual({ dpi: 96, scale: 96 / 72, jpegQuality: 0.7 });
+  });
   it('標準画質は 150dpi / JPEG 80%', () => {
     expect(renderSettings('standard')).toEqual({ dpi: 150, scale: 150 / 72, jpegQuality: 0.8 });
   });
   it('高画質は 300dpi / JPEG 90%', () => {
     expect(renderSettings('high')).toEqual({ dpi: 300, scale: 300 / 72, jpegQuality: 0.9 });
+  });
+  it('最高画質は 600dpi / JPEG 95%', () => {
+    expect(renderSettings('max')).toEqual({ dpi: 600, scale: 600 / 72, jpegQuality: 0.95 });
   });
 });
 
