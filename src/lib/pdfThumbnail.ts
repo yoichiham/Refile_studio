@@ -6,8 +6,11 @@ function mapError(e: unknown): Error {
   return new Error(name === 'PasswordException' ? PDF_PASSWORD_ERROR : PDF_LOAD_ERROR);
 }
 
-/** PDF の最初のページを JPEG data URL として描画する（ファイルリストのサムネイル用）。 */
-export async function renderPdfFirstPage(data: ArrayBuffer): Promise<string> {
+/**
+ * PDF の最初のページを JPEG data URL として描画する。
+ * `targetWidth` で描画幅（px）を指定（リスト用サムネイルは既定の 140、プレビューは大きめ）。
+ */
+export async function renderPdfFirstPage(data: ArrayBuffer, targetWidth = 140): Promise<string> {
   let pdf;
   try {
     pdf = await pdfjsLib.getDocument({ data }).promise;
@@ -17,7 +20,7 @@ export async function renderPdfFirstPage(data: ArrayBuffer): Promise<string> {
   try {
     const page = await pdf.getPage(1);
     const base = page.getViewport({ scale: 1 });
-    const viewport = page.getViewport({ scale: 140 / base.width });
+    const viewport = page.getViewport({ scale: targetWidth / base.width });
     const canvas = document.createElement('canvas');
     canvas.width = Math.ceil(viewport.width);
     canvas.height = Math.ceil(viewport.height);

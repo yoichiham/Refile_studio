@@ -145,6 +145,19 @@ export function ImageConvert() {
     if (outBlob) downloadBlob(outBlob, timestampFileName(info.ext));
   };
 
+  const clearImage = () => {
+    setFile(null);
+    setImg(null);
+    setWidthStr('');
+    setHeightStr('');
+    setPercent(100);
+    setOutBlob(null);
+    setOutBytes(0);
+    setOrigUrl(null);
+    setOutUrl(null);
+    setError('');
+  };
+
   useToolHeader(
     {
       icon: <Icon name="convert" />,
@@ -167,6 +180,14 @@ export function ImageConvert() {
         metaLine={img ? `${img.naturalWidth} × ${img.naturalHeight}px ・ ${formatBytes(origBytes)}` : undefined}
         onFiles={handleFiles}
       />
+
+      {file && (
+        <div className="btn-row">
+          <button type="button" className="btn-ghost" onClick={clearImage}>
+            選択した画像を削除
+          </button>
+        </div>
+      )}
 
       {img && (
         <div className="two-col">

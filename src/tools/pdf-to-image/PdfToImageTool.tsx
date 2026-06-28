@@ -9,7 +9,7 @@ import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
 import { Icon } from '../../app/icons';
 import { renderPdfFirstPage } from '../../lib/pdfThumbnail';
-import { type Quality } from './logic';
+import { type Quality, QUALITY_OPTIONS } from './logic';
 import { PDF_LOAD_ERROR, pdfToImages } from './convert';
 
 export function PdfToImageTool() {
@@ -25,7 +25,7 @@ export function PdfToImageTool() {
     let cancelled = false;
     file
       .arrayBuffer()
-      .then((data) => renderPdfFirstPage(data))
+      .then((data) => renderPdfFirstPage(data, 520))
       .then((url) => { if (!cancelled) setThumbSrc(url); })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -33,6 +33,12 @@ export function PdfToImageTool() {
 
   const handleFiles = (files: File[]) => {
     setFile(files[0]);
+    setError('');
+  };
+
+  const clearFile = () => {
+    setFile(null);
+    setThumbSrc(null);
     setError('');
   };
 
@@ -73,15 +79,25 @@ export function PdfToImageTool() {
       />
 
       {file && (
-        <div className="selected-file">
-          {thumbSrc
-            ? <img src={thumbSrc} className="selected-thumb" alt="1ページ目" />
-            : <span className="file-thumb-placeholder" />}
-          <span className="hint">選択中: {file.name}</span>
-        </div>
+        <>
+          <div className="selected-file">
+            <span className="hint">選択中: {file.name}</span>
+            <button type="button" className="btn-ghost" onClick={clearFile}>
+              削除
+            </button>
+          </div>
+
+          <div className="pdf-preview">
+            {thumbSrc ? (
+              <img src={thumbSrc} alt="1ページ目プレビュー" />
+            ) : (
+              <div className="preview-empty">プレビューを読み込み中…</div>
+            )}
+          </div>
+        </>
       )}
 
-      <div className="field" style={{ maxWidth: 280, marginTop: 16 }}>
+      <div className="field" style={{ maxWidth: 320, marginTop: 16 }}>
         <label className="field-label" htmlFor="pdf-quality">
           画質
         </label>
@@ -90,8 +106,11 @@ export function PdfToImageTool() {
           value={quality}
           onChange={(e) => setQuality(e.target.value as Quality)}
         >
-          <option value="standard">標準（150dpi / JPEG 80%）</option>
-          <option value="high">高画質（300dpi / JPEG 90%）</option>
+          {QUALITY_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
         </select>
       </div>
 
