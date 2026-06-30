@@ -3,7 +3,7 @@ import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
 import { downloadBlob } from '../../lib/download';
-import { timestampFileName } from '../../lib/filename';
+import { withExtension } from '../../lib/filename';
 import { formatBytes } from '../../lib/format';
 import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
@@ -52,7 +52,7 @@ export function AudioConvert() {
     setError('');
     try {
       const { blob, ext } = await convertAudio(file, format, bitrate);
-      downloadBlob(blob, timestampFileName(ext));
+      downloadBlob(blob, withExtension(file.name, ext));
     } catch (e) {
       setError(e instanceof Error ? e.message : '変換に失敗しました');
     } finally {
@@ -95,8 +95,8 @@ export function AudioConvert() {
             選択中: {file.name} ・ {formatBytes(file.size)}
           </p>
           <div className="btn-row">
-            <button type="button" className="btn-ghost" onClick={clearFile}>
-              選択した音声を削除
+            <button type="button" className="btn-delete" onClick={clearFile}>
+              <Icon name="trash" size={14} /> 選択した音声を削除
             </button>
           </div>
         </>

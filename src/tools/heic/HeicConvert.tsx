@@ -3,7 +3,7 @@ import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
 import { downloadBlob } from '../../lib/download';
-import { timestampFileName } from '../../lib/filename';
+import { withExtension } from '../../lib/filename';
 import { formatBytes } from '../../lib/format';
 import { useObjectUrl } from '../../lib/useObjectUrl';
 import { useToolHeader } from '../../app/header';
@@ -67,7 +67,7 @@ export function HeicConvert() {
   };
 
   const download = () => {
-    if (outBlob) downloadBlob(outBlob, timestampFileName(format === 'jpeg' ? 'jpg' : 'png'));
+    if (file && outBlob) downloadBlob(outBlob, withExtension(file.name, format === 'jpeg' ? 'jpg' : 'png'));
   };
 
   useToolHeader(
@@ -100,8 +100,8 @@ export function HeicConvert() {
             選択中: {file.name} ・ {formatBytes(file.size)}
           </p>
           <div className="btn-row">
-            <button type="button" className="btn-ghost" onClick={clearFile}>
-              選択したファイルを削除
+            <button type="button" className="btn-delete" onClick={clearFile}>
+              <Icon name="trash" size={14} /> 選択したファイルを削除
             </button>
           </div>
         </>
@@ -123,25 +123,34 @@ export function HeicConvert() {
         ))}
       </div>
 
-      <div className="field" style={{ maxWidth: 360 }}>
-        <div className="slider-row">
-          <label className="field-label" style={{ margin: 0 }} htmlFor="heic-q">
-            品質
-          </label>
-          <span className="slider-value">{format === 'png' ? '—' : `${quality}%`}</span>
+      {format === 'jpeg' ? (
+        <div className="field" style={{ maxWidth: 360 }}>
+          <div className="slider-row">
+            <label className="field-label" style={{ margin: 0 }} htmlFor="heic-q">
+              品質
+            </label>
+            <span className="slider-value">{quality}%</span>
+          </div>
+          <input
+            id="heic-q"
+            type="range"
+            min={1}
+            max={100}
+            value={quality}
+            onChange={(e) => setQuality(Number(e.target.value))}
+          />
         </div>
-        <input
-          id="heic-q"
-          type="range"
-          min={1}
-          max={100}
-          value={quality}
-          disabled={format === 'png'}
-          onChange={(e) => setQuality(Number(e.target.value))}
-        />
-      </div>
+      ) : (
+        <p className="field-note">PNG は可逆（ロスレス）形式のため、品質の指定はありません。</p>
+      )}
 
       <ErrorMessage>{error || undefined}</ErrorMessage>
+
+      <div className="btn-row">
+        <button type="button" className="btn" onClick={handleConvert} disabled={!file || busy}>
+          変換する
+        </button>
+      </div>
 
       {busy && <Loading label="変換中…（初回はライブラリの読み込みに時間がかかります）" />}
 
@@ -155,12 +164,6 @@ export function HeicConvert() {
           </div>
         </>
       )}
-
-      <div className="btn-row">
-        <button type="button" className="btn" onClick={handleConvert} disabled={!file || busy}>
-          変換する
-        </button>
-      </div>
     </div>
   );
 }
