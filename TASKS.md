@@ -97,6 +97,22 @@
 - [x] GitHub Pages デプロイ（GitHub Actions、https://yoichiham.github.io/Refile_studio/）
 - [x] README 作成・SPEC.md 更新（v1.3）
 
+## Phase 9：HEIC 変換ツール（id: heic）（v1.4）
+
+- [x] 純粋ロジック（出力形式 mime/ext・拡張子＆サイズバリデーション）＋テスト
+- [x] heic2any 動的 import の変換ラッパ（`convert.ts`）
+- [x] UI（D&D・JPEG/PNG 切替・品質スライダー・変換後プレビュー・削除ボタン）
+- [x] アイコン `heic` 追加・レジストリ登録（image グループ）
+- [x] 受入：.heic/.heif 許可・非対応拡張子/50MB超エラー・JPEG/PNG 出力（実機確認）
+
+## Phase 10：オーディオ変換ツール（id: audio）（v1.4）
+
+- [x] 純粋ロジック（`floatTo16BitPCM`・`encodeWav`・形式 mime/ext・拡張子＆サイズバリデーション）＋テスト
+- [x] Web Audio デコード＋ lamejs 動的 import の MP3 エンコード（`encode.ts`）
+- [x] UI（D&D・MP3/WAV 切替・ビットレート選択・Safari FLAC 非対応の注記・削除ボタン）
+- [x] アイコン `audio` 追加・新カテゴリ「オーディオツール」追加・レジストリ登録
+- [x] 受入：WAV→MP3/WAV 変換（実機 E2E）・非対応拡張子/100MB超エラー・デコード失敗エラー
+
 ---
 
 ## 受入確認（リリース前チェック）

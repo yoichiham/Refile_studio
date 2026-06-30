@@ -11,6 +11,8 @@ export type IconName =
   | 'text'
   | 'image'
   | 'pdf'
+  | 'audio'
+  | 'heic'
   | 'download'
   | 'copy'
   | 'menu'
@@ -128,6 +130,23 @@ export function Icon({ name, size = 18, ...rest }: IconProps) {
           <rect x="3" y="3" width="18" height="18" rx="2" />
           <line x1="3" y1="9" x2="21" y2="9" />
           <line x1="9" y1="9" x2="9" y2="21" />
+        </svg>
+      );
+    case 'audio':
+      return (
+        <svg {...common}>
+          <path d="M9 18V5l12-2v13" />
+          <circle cx="6" cy="18" r="3" />
+          <circle cx="18" cy="16" r="3" />
+        </svg>
+      );
+    case 'heic':
+      return (
+        <svg {...common}>
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <polyline points="21 15 16 10 5 21" />
+          <path d="M14 3l3 3-3 3" />
         </svg>
       );
     default:

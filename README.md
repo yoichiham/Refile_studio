@@ -16,6 +16,8 @@
 |---------|--------|------|
 | テキスト | Markdown | Markdown を編集し、`.md` または PDF として書き出し。`.md` ファイルのドラッグ&ドロップ読み込み・ライブプレビュー付き。 |
 | 画像 | 画像変換 | リサイズ・フォーマット変換（PNG / JPEG / WebP）と、複数画像を1つの PDF にまとめる機能をタブ切替で利用。横長画像は自動で横向きページに。 |
+| 画像 | HEIC 変換 | iPhone の HEIC / HEIF 写真を JPEG / PNG に変換（品質選択・プレビュー付き）。 |
+| 音声 | オーディオ変換 | FLAC / WAV / MP3 / M4A などの音声を MP3（ビットレート選択）または WAV に変換。※FLAC のデコードは Safari 非対応。 |
 | PDF | PDF → 画像 | PDF の各ページを JPEG に変換。1ページは単体 DL、複数ページは ZIP。 |
 | PDF | PDF 結合 | 複数の PDF を順番通りに1つに結合。 |
 | PDF | PDF ページ操作 | ページのサムネイル確認・並べ替え・削除・抽出。 |
@@ -30,6 +32,8 @@
 | PDF 生成・編集 | pdf-lib |
 | Markdown → PDF | pdfmake + Noto Sans JP（動的フェッチ） |
 | Markdown パース | markdown-it |
+| HEIC デコード | heic2any（libheif WASM・動的 import） |
+| 音声デコード / MP3 エンコード | Web Audio API / @breezystack/lamejs（動的 import） |
 | ZIP 生成 | JSZip |
 | PWA | vite-plugin-pwa（Workbox） |
 | テスト | Vitest + @testing-library/react |

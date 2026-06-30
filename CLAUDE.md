@@ -19,7 +19,7 @@
 
 ## 技術スタック
 
-- React + TypeScript + Vite / react-router(HashRouter) / pdfjs-dist + JSZip / pdfmake + Noto Sans JP / pdf-lib（PDF編集）/ vite-plugin-pwa / Canvas API。詳細は SPEC §2。
+- React + TypeScript + Vite / react-router(HashRouter) / pdfjs-dist + JSZip / pdfmake + Noto Sans JP / pdf-lib（PDF編集）/ heic2any（HEIC）/ @breezystack/lamejs + Web Audio API（音声）/ vite-plugin-pwa / Canvas API。詳細は SPEC §2。
 - **依存の落とし穴**：
   - **Vite base**：GitHub Pages 用に `base: '/<リポジトリ名>/'` 必須。未設定だとアセットが404になる。
   - **ルーター**：必ず HashRouter。BrowserRouter は Pages で直アクセス/リロード時に404になる。
@@ -27,6 +27,10 @@
   - **Noto Sans JP**：全グリフ埋め込みはバンドル数MB級。動的 fetch → pdfmake vfs 登録で回避。
   - **canvas.toBlob**：品質引数は JPEG/WebP のみ有効、PNG は無視される。
   - **pdf-lib**：WebP/GIF/BMP は直接埋め込めない（embedPng/embedJpg のみ）。Canvas で PNG/JPEG に正規化してから埋め込む。
+  - **ffmpeg.wasm は不採用**：マルチスレッド版は SharedArrayBuffer（COOP/COEP ヘッダ）必須だが GitHub Pages はカスタムヘッダ不可。音声は Web Audio API（decodeAudioData）＋ lamejs で実装。**Safari は FLAC をデコードできない**点に注意。
+  - **HEIC の MIME は不定**：OS により `image/heic` が空になることがあるため、HEIC/HEIF は**拡張子でバリデーション**する。
+  - **heic2any / lamejs は動的 import**：バンドル肥大（heic2any 約1.3MB）を避けるため各ツール内で `await import(...)`。メインバンドルに静的 import しないこと。
+  - **重い Blob 生成**：Uint8Array から Blob を作る際は TS 5.7 の型制約（ArrayBufferLike）回避のため `src/lib/download.ts` の `bytesToBlob` を使う。
   - **PWA**：Service Worker / manifest の scope を base path（`/<リポジトリ名>/`）に整合させる。ズレるとオフライン時に読み込めない。
 
 ## 設計上の不変条件（破ってはならない）

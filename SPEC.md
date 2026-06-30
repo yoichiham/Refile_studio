@@ -1,12 +1,12 @@
 # SPEC.md — Refile.studio 仕様書（v1.4）
 
 - 文書名：仕様書
-- 対象：ブラウザだけで完結するファイル変換ユーティリティ集（テキスト/画像/PDF/Markdown）。サーバー送信なし。
+- 対象：ブラウザだけで完結するファイル変換ユーティリティ集（テキスト/画像/音声/PDF/Markdown）。サーバー送信なし。
 - 作成日：2026-06-24
 - v1.1：画像→PDF / PDF結合 / PDF分割・ページ操作 を追加。PWA化・全ツールD&D対応。
 - v1.2：Markdownツール統合（テキスト編集＋.md D&D読み込み＋.md/PDF書き出し）、画像ツール統合（リサイズ変換＋画像→PDF）、自動ページ向き切替、ミニサイドバー、PDFサムネイル表示。
 - v1.3：PDF→画像の画質4段階化、削除ボタン・大きなプレビュー追加、Markdown .md エクスポートの Windows 文字化け対策。
-- v1.4：画像変換に YouTube サムネイルプリセット（1280×720 中央クロップ＋2MB 以下に自動圧縮）を追加。
+- v1.4：画像変換に YouTube サムネイルプリセット（1280×720 中央クロップ＋2MB 以下に自動圧縮）を追加。オーディオ変換ツール（FLAC/WAV等 → MP3/WAV）と HEIC 変換ツール（HEIC/HEIF → JPEG/PNG）を追加。新カテゴリ「オーディオツール」。
 
 ---
 
@@ -21,9 +21,11 @@
 **対象（v1 に含む）**
 - ① Markdown ツール — テキスト編集・.md ファイルの D&D読み込み・.md / PDF 書き出し（ライブプレビュー付き）
 - ② 画像変換ツール — リサイズ＆フォーマット変換（PNG/JPEG/WebP 出力）＋ 複数画像 → PDF（タブ切替）
-- ③ PDF → 画像（JPEG、複数ページは ZIP）
-- ④ PDF 結合
-- ⑤ PDF 分割・ページ操作（並べ替え/削除/抽出）
+- ③ HEIC 変換ツール — HEIC/HEIF → JPEG/PNG
+- ④ オーディオ変換ツール — FLAC/WAV/MP3/M4A 等 → MP3/WAV
+- ⑤ PDF → 画像（JPEG、複数ページは ZIP）
+- ⑥ PDF 結合
+- ⑦ PDF 分割・ページ操作（並べ替え/削除/抽出）
 - 各ツールをサイドバー＋ハッシュルーティングで切替。ツールはレジストリで管理し追加容易にする
 - 全ツール共通のドラッグ&ドロップ対応、PWA化（オフライン利用）
 
@@ -32,7 +34,9 @@
 - 入力データの永続化（履歴・自動保存はしない）
 - 多言語UI（日本語のみ）
 - ブラウザ印刷ダイアログ方式のPDF出力（自動ダウンロード・自動命名要件と相反するため不採用）
-- PDF以外 → PDF（Word等）、動画/音声の変換
+- PDF以外 → PDF（Word等）、動画の変換
+- 音声の MP3/WAV 以外への出力エンコード（AAC/OGG 等）、音声の一括変換・トリミング
+- HEIC の複数ファイル一括（ZIP）変換（単一ファイルのみ）
 - アニメーションGIFの全フレーム保持（1フレーム目のみ静止画化）
 - モバイル最適化の作り込み（PC前提。レスポンシブは最低限）
 - 複数画像一括変換、ダークモード（将来検討）
@@ -44,6 +48,8 @@
 - ツールは「ツールレジストリ（配列）」で定義。サイドバーとルートは登録から自動生成。新ツールは1ファイル＋1登録で追加。
 - 処理ライブラリ：
   - 画像：Canvas API（drawImage + canvas.toBlob）
+  - HEIC→JPEG/PNG：heic2any（libheif WASM、動的 import）
+  - 音声→MP3：Web Audio API（decodeAudioData でデコード）＋ @breezystack/lamejs（MP3 エンコード、動的 import）。WAV 出力はライブラリ不要の純粋関数。
   - PDF→画像：pdfjs-dist（Web Worker）＋ JSZip
   - Markdown解析：markdown-it で AST を得て pdfmake のドキュメント定義へ変換
   - Markdown→PDF：pdfmake（Noto Sans JP を vfs に動的登録）
@@ -145,7 +151,35 @@
 - 出力：`YYYYMMDD_HHMMSS.pdf`。
 - エラー：画像0枚 →「画像を選択してください」。非対応形式・10MB超はリサイズ・変換タブと同じ文言。
 
-### 6.3 PDF → 画像（id: pdf-to-image）
+### 6.3 HEIC 変換（id: heic）
+iPhone の HEIC/HEIF 写真を JPEG/PNG に変換する。
+
+- 入力：`.heic` / `.heif` ファイル1つ（最大50MB）。HEIC の MIME は OS により空になるため**拡張子でバリデーション**する。
+- 出力：JPEG（品質スライダー 1-100%）または PNG。ファイル名は `YYYYMMDD_HHMMSS.jpg` / `.png`。
+- 実装：heic2any（libheif WASM）を動的 import。`heic2any({ blob, toType, quality })` でデコード。ライブフォト等で複数像が返る場合は先頭を採用。
+- 変換後は結果をプレビュー表示し、トップバーのダウンロードボタンで保存。
+- 削除ボタンで選択・結果をクリア。
+- エラー：
+  - 非対応拡張子 →「HEIC / HEIF ファイルを選択してください」
+  - 50MB 超 →「ファイルサイズは50MB以下にしてください」
+  - 変換失敗 →「HEIC ファイルを変換できませんでした」
+
+### 6.4 オーディオ変換（id: audio）
+音声ファイルを MP3 / WAV に変換する。
+
+- 入力：`.flac .wav .mp3 .m4a .aac .ogg .oga .opus .weba` のいずれか1つ（最大100MB）。実際にデコードできるかはブラウザ依存（**Safari は FLAC をデコード不可**）。
+- 出力：
+  - **MP3**（@breezystack/lamejs、動的 import）：ビットレート 128 / 192 / 320 kbps を選択。
+  - **WAV**（純粋関数 `encodeWav`）：16bit PCM 非圧縮。
+  - ファイル名は `YYYYMMDD_HHMMSS.mp3` / `.wav`。
+- 処理：`AudioContext.decodeAudioData` で AudioBuffer 化 → 形式に応じて lamejs（1152 サンプル毎）または WAV エンコード → ダウンロード。長尺はロード表示でブロック。
+- 削除ボタンで選択をクリア。Safari での FLAC 非対応を UI に明記。
+- エラー：
+  - 非対応拡張子 →「対応していない音声ファイル形式です」
+  - 100MB 超 →「ファイルサイズは100MB以下にしてください」
+  - デコード失敗 →「このファイル形式はお使いのブラウザでデコードできませんでした（Safari は FLAC 非対応）」
+
+### 6.5 PDF → 画像（id: pdf-to-image）
 - pdfjs-dist で各ページを canvas にレンダ → JPEG 化。
 - 1ページ：JPEG 1枚をダウンロード。複数ページ：全ページ JPEG 化し ZIP で一括ダウンロード（JSZip）。
 - 品質選択（4段階）：
@@ -161,7 +195,7 @@
   - パスワード保護PDF →「パスワードで保護されたPDFは変換できません」
   - 破損PDF →「ファイルを読み込めませんでした」
 
-### 6.4 PDF 結合（id: pdf-merge）
+### 6.6 PDF 結合（id: pdf-merge）
 - 複数PDFを並び順に結合し1つのPDFに。実装：pdf-lib。
 - ファイル一覧に各PDFの1ページ目サムネイルを表示。
 - 出力：`YYYYMMDD_HHMMSS.pdf`。
@@ -170,7 +204,7 @@
   - パスワード保護PDF →「パスワードで保護されたPDFは操作できません」
   - 破損PDF →「ファイルを読み込めませんでした」
 
-### 6.5 PDF ページ操作（id: pdf-pages）
+### 6.7 PDF ページ操作（id: pdf-pages）
 - 1つのPDFを読み込み、ページのサムネイル一覧を表示。ページの並べ替え・削除・抽出（範囲/選択）が可能。
 - 出力：編集後の単一PDF。抽出を複数グループで行う場合は ZIP。
 - 実装：pdfjs-dist でサムネイル描画（§6.3 の基盤流用）＋ pdf-lib でページのコピー/削除/並べ替え。
@@ -191,12 +225,12 @@
 
 ## 8. 非機能要件
 
-- 対応ブラウザ：モダンevergreen（Chrome / Edge / Firefox / Safari 最新）。
-- 性能：画像10MB・PDF100ページを現実的時間で処理。重い処理は pdfjs の worker を活用し、ページ逐次処理＆canvas解放でメモリを抑える。
+- 対応ブラウザ：モダンevergreen（Chrome / Edge / Firefox / Safari 最新）。**オーディオ変換の FLAC デコードは Safari 非対応**（Chrome/Edge/Firefox を推奨）。
+- 性能：画像10MB・PDF100ページを現実的時間で処理。重い処理は pdfjs の worker を活用し、ページ逐次処理＆canvas解放でメモリを抑える。音声は最大100MB、HEIC は最大50MB。
 - セキュリティ/プライバシー：サーバー送信なし。外部解析・トラッキングなし。
 - コスト：静的ホスティングのみ（実質ゼロ）。
-- バンドル：Noto Sans JP の全グリフ埋め込みはサイズ過大 → フォントは動的ロードし vfs 登録（初回PDF生成時に fetch）。
-- PWA：オフライン利用可能（Service Worker キャッシュ）。初回ロード後はネット不要。更新は autoUpdate。
+- バンドル：Noto Sans JP の全グリフ埋め込みはサイズ過大 → フォントは動的ロードし vfs 登録（初回PDF生成時に fetch）。lamejs（MP3）・heic2any（HEIC）も各ツール初回利用時に動的 import し、メインバンドルから分離。
+- PWA：オフライン利用可能（Service Worker キャッシュ）。初回ロード後はネット不要。更新は autoUpdate。動的 import される lamejs/heic2any は未ロード状態でオフラインになると利用不可。
 
 ## 9. 主要トレードオフ・既知の制約
 
@@ -207,6 +241,8 @@
 5. **永続化なし**：代償＝リロードで入力消失。緩和＝意図的（プライバシー優先）であることを明示。
 6. **pdf-lib と pdfjs-dist の併用**：PDFライブラリ2本でバンドル増の代償。緩和＝ツール単位の動的 import で遅延ロード。
 7. **PWA キャッシュ**：古いアセットを配信する恐れ。緩和＝autoUpdate ＋ base path 整合で SW を入れ替え。
+8. **音声変換に Web Audio + lamejs を採用（ffmpeg.wasm 不採用）**：ffmpeg.wasm のマルチスレッド版は `SharedArrayBuffer`（COOP/COEP ヘッダ）必須だが GitHub Pages はカスタムヘッダ不可。シングルスレッド版は約25MBでオフライン不可。代償＝ブラウザ内蔵デコーダ依存（Safari は FLAC 不可）＋出力は MP3/WAV のみ。緩和＝lamejs は約100KBと軽量で動的 import、用途（FLAC→MP3）は主要ブラウザでカバー。
+9. **HEIC に heic2any（libheif WASM）採用**：WASM 約1.5MB の代償。緩和＝動的 import で初回利用時のみロード。
 
 ## 10. 受入条件（抜粋）
 

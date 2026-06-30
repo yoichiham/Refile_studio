@@ -1,9 +1,11 @@
 import type { ToolDefinition, ToolGroup } from './types';
 import { MarkdownTool } from './md-to-pdf/MarkdownTool';
 import { ImageTool } from './image/ImageTool';
+import { HeicConvert } from './heic/HeicConvert';
 import { PdfToImageTool } from './pdf-to-image/PdfToImageTool';
 import { PdfMergeTool } from './pdf-merge/PdfMergeTool';
 import { PdfPagesTool } from './pdf-pages/PdfPagesTool';
+import { AudioConvert } from './audio/AudioConvert';
 import type { IconName } from '../app/icons';
 
 export interface ToolGroupDef {
@@ -16,6 +18,7 @@ export interface ToolGroupDef {
 export const toolGroups: ToolGroupDef[] = [
   { id: 'text', label: 'テキストツール', icon: 'text' },
   { id: 'image', label: '画像ツール', icon: 'image' },
+  { id: 'audio', label: 'オーディオツール', icon: 'audio' },
   { id: 'pdf', label: 'PDFツール', icon: 'pdf' },
 ];
 
@@ -38,6 +41,22 @@ export const tools: ToolDefinition[] = [
     icon: 'convert',
     group: 'image',
     component: ImageTool,
+  },
+  {
+    id: 'heic',
+    title: 'HEIC 変換',
+    description: 'iPhone の HEIC / HEIF 写真を JPEG / PNG に変換します。',
+    icon: 'heic',
+    group: 'image',
+    component: HeicConvert,
+  },
+  {
+    id: 'audio',
+    title: 'オーディオ変換',
+    description: '音声ファイル（FLAC / WAV など）を MP3 / WAV に変換します。',
+    icon: 'audio',
+    group: 'audio',
+    component: AudioConvert,
   },
   {
     id: 'pdf-to-image',

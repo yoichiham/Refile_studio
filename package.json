@@ -13,6 +13,8 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@breezystack/lamejs": "^1.2.7",
+    "heic2any": "^0.0.4",
     "jszip": "^3.10.1",
     "markdown-it": "^14.1.0",
     "pdf-lib": "^1.17.1",
