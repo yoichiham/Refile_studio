@@ -21,12 +21,14 @@ export function loadImageElement(file: Blob): Promise<HTMLImageElement> {
 /**
  * 画像を指定サイズの canvas に描画する。
  * background を渡すと先に塗りつぶす（透過画像を JPEG にする際の黒化防止）。
+ * srcRect を渡すと元画像の指定矩形のみを切り出して描画する（中央クロップ等に使用）。
  */
 export function drawToCanvas(
   img: CanvasImageSource,
   width: number,
   height: number,
   background?: string,
+  srcRect?: { sx: number; sy: number; sw: number; sh: number },
 ): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -39,7 +41,11 @@ export function drawToCanvas(
     ctx.fillStyle = background;
     ctx.fillRect(0, 0, width, height);
   }
-  ctx.drawImage(img, 0, 0, width, height);
+  if (srcRect) {
+    ctx.drawImage(img, srcRect.sx, srcRect.sy, srcRect.sw, srcRect.sh, 0, 0, width, height);
+  } else {
+    ctx.drawImage(img, 0, 0, width, height);
+  }
   return canvas;
 }
 

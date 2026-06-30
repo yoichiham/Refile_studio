@@ -663,6 +663,27 @@ select:focus {
   color: #fff;
 }
 
+.preset:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.preset-row {
+  display: flex;
+  margin-bottom: 6px;
+}
+
+.preset-wide {
+  width: 100%;
+  text-align: center;
+}
+
+.field-note {
+  margin: 0 0 18px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 .segmented {
   display: inline-flex;
   gap: 8px;

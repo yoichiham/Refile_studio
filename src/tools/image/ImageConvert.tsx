@@ -13,8 +13,12 @@ import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
 import { Icon } from '../../app/icons';
 import {
+  type CropRect,
   type OutputFormat,
   PERCENT_PRESETS,
+  YOUTUBE_THUMBNAIL,
+  coverCropRect,
+  findQualityForMaxSize,
   fitDimension,
   formatFromMime,
   formatInfo,
@@ -44,6 +48,9 @@ export function ImageConvert() {
   const [error, setError] = useState('');
   const [origUrl, setOrigUrl] = useObjectUrl();
   const [outUrl, setOutUrl] = useObjectUrl();
+  // YouTube サムネイル等のクロップモード。null なら通常のリサイズ動作
+  const [cropRect, setCropRect] = useState<CropRect | null>(null);
+  const [ytBusy, setYtBusy] = useState(false);
 
   const origBytes = file?.size ?? 0;
   const info = formatInfo(format);
@@ -80,6 +87,7 @@ export function ImageConvert() {
       setFile(f);
       setImg(image);
       setOrigUrl(f);
+      setCropRect(null);
       setWidthStr(String(image.naturalWidth));
       setHeightStr(String(image.naturalHeight));
       setPercent(100);
@@ -103,7 +111,7 @@ export function ImageConvert() {
     setError('');
     let cancelled = false;
     (async () => {
-      const canvas = drawToCanvas(img, w, h, format === 'jpeg' ? '#ffffff' : undefined);
+      const canvas = drawToCanvas(img, w, h, format === 'jpeg' ? '#ffffff' : undefined, cropRect ?? undefined);
       const blob = await canvasToBlob(canvas, info.mime, format === 'png' ? undefined : quality / 100);
       if (cancelled) return;
       setOutBlob(blob);
@@ -113,10 +121,11 @@ export function ImageConvert() {
     return () => {
       cancelled = true;
     };
-  }, [img, widthStr, heightStr, format, quality, info.mime, setOutUrl]);
+  }, [img, widthStr, heightStr, format, quality, info.mime, cropRect, setOutUrl]);
 
   const applyPercent = (p: number) => {
     if (!img) return;
+    setCropRect(null);
     setPercent(p);
     const d = scaleDimensions(img.naturalWidth, img.naturalHeight, p);
     setWidthStr(String(d.width));
@@ -124,6 +133,7 @@ export function ImageConvert() {
   };
 
   const onWidth = (value: string) => {
+    setCropRect(null);
     setPercent(null);
     setWidthStr(value);
     const w = Number.parseInt(value, 10);
@@ -133,11 +143,36 @@ export function ImageConvert() {
   };
 
   const onHeight = (value: string) => {
+    setCropRect(null);
     setPercent(null);
     setHeightStr(value);
     const h = Number.parseInt(value, 10);
     if (lock && img && Number.isFinite(h) && h > 0) {
       setWidthStr(String(fitDimension(img.naturalWidth, img.naturalHeight, null, h).width));
+    }
+  };
+
+  // YouTube サムネイル（1280×720 中央クロップ・JPEG・2MB 以下）に一括設定
+  const applyYoutubeThumbnail = async () => {
+    if (!img || ytBusy) return;
+    setYtBusy(true);
+    try {
+      const { width: tw, height: th, maxBytes } = YOUTUBE_THUMBNAIL;
+      const rect = coverCropRect(img.naturalWidth, img.naturalHeight, tw, th);
+      const canvas = drawToCanvas(img, tw, th, '#ffffff', rect);
+      const q = await findQualityForMaxSize(
+        async (quality) => (await canvasToBlob(canvas, 'image/jpeg', quality)).size,
+        maxBytes,
+      );
+      setCropRect(rect);
+      setFormat('jpeg');
+      setWidthStr(String(tw));
+      setHeightStr(String(th));
+      setPercent(null);
+      setQuality(Math.round(q * 100));
+      setError('');
+    } finally {
+      setYtBusy(false);
     }
   };
 
@@ -148,6 +183,7 @@ export function ImageConvert() {
   const clearImage = () => {
     setFile(null);
     setImg(null);
+    setCropRect(null);
     setWidthStr('');
     setHeightStr('');
     setPercent(100);
@@ -205,6 +241,18 @@ export function ImageConvert() {
                 </button>
               ))}
             </div>
+
+            <div className="preset-row">
+              <button
+                type="button"
+                className={`preset preset-wide${cropRect ? ' is-active' : ''}`}
+                onClick={applyYoutubeThumbnail}
+                disabled={ytBusy}
+              >
+                {ytBusy ? '変換中…' : '▶ YouTube サムネイル（2MB）'}
+              </button>
+            </div>
+            <p className="field-note">16:9 以外の画像は中央を基準にクロップされます。</p>
 
             <div className="row">
               <div className="field">
