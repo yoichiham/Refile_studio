@@ -11,8 +11,11 @@ export type IconName =
   | 'text'
   | 'image'
   | 'pdf'
+  | 'audio'
+  | 'heic'
   | 'download'
   | 'copy'
+  | 'trash'
   | 'menu'
   | 'chevron';
 
@@ -64,6 +67,15 @@ export function Icon({ name, size = 18, ...rest }: IconProps) {
         <svg {...common}>
           <rect x="9" y="9" width="13" height="13" rx="2" />
           <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      );
+    case 'trash':
+      return (
+        <svg {...common}>
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          <line x1="10" y1="11" x2="10" y2="17" />
+          <line x1="14" y1="11" x2="14" y2="17" />
         </svg>
       );
     case 'text':
@@ -128,6 +140,23 @@ export function Icon({ name, size = 18, ...rest }: IconProps) {
           <rect x="3" y="3" width="18" height="18" rx="2" />
           <line x1="3" y1="9" x2="21" y2="9" />
           <line x1="9" y1="9" x2="9" y2="21" />
+        </svg>
+      );
+    case 'audio':
+      return (
+        <svg {...common}>
+          <path d="M9 18V5l12-2v13" />
+          <circle cx="6" cy="18" r="3" />
+          <circle cx="18" cy="16" r="3" />
+        </svg>
+      );
+    case 'heic':
+      return (
+        <svg {...common}>
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <polyline points="21 15 16 10 5 21" />
+          <path d="M14 3l3 3-3 3" />
         </svg>
       );
     default:

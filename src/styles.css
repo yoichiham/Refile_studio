@@ -450,6 +450,13 @@ button {
   color: var(--text);
 }
 
+.field-note {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
 .two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -901,6 +908,27 @@ input[type='range'] {
   padding: 4px 8px;
   font-size: 12.5px;
   cursor: pointer;
+}
+
+.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  color: var(--danger);
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background: var(--danger-soft);
+  border-color: var(--danger);
 }
 
 /* topbar action buttons (lighter weight) */

@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import type { IconName } from '../app/icons';
 
 /** サイドバーのカテゴリ。 */
-export type ToolGroup = 'text' | 'image' | 'pdf';
+export type ToolGroup = 'text' | 'image' | 'pdf' | 'audio';
 
 /**
  * ツール登録の型。サイドバーとルーティングはこの定義から自動生成される。

@@ -12,3 +12,13 @@ export function timestampFileName(extension: string, date: Date = new Date()): s
   const ext = extension.startsWith('.') ? extension.slice(1) : extension;
   return `${stamp}.${ext}`;
 }
+
+/**
+ * 元ファイル名の拡張子だけを差し替える（変換後も元の名前を保つため）。
+ * 拡張子がなければ付与し、空名なら `converted` をフォールバックに使う。
+ */
+export function withExtension(originalName: string, extension: string): string {
+  const ext = extension.startsWith('.') ? extension.slice(1) : extension;
+  const base = originalName.trim().replace(/\.[^./\\]*$/, '') || 'converted';
+  return `${base}.${ext}`;
+}
