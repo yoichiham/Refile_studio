@@ -13,6 +13,12 @@ import { generateMarkdownPdf } from './generate';
 
 type ViewMode = 'edit' | 'split' | 'preview';
 
+const VIEW_MODE_LABELS: Record<ViewMode, string> = {
+  edit: '編集',
+  split: '分割',
+  preview: 'プレビュー',
+};
+
 /** ファイル名から使えない文字を除去。空なら untitled。 */
 function safeName(name: string): string {
   const cleaned = name.replace(/[\\/:*?"<>|]/g, '').trim();
@@ -112,7 +118,7 @@ export function MarkdownTool() {
             onClick={handleCopy}
             disabled={!text}
           >
-            {copied ? '☑️ COPIED' : <><Icon name="copy" size={15} /> COPY</>}
+            {copied ? '✓ コピー済み' : <><Icon name="copy" size={15} /> コピー</>}
           </button>
           <div className="export-menu">
             <button
@@ -121,7 +127,7 @@ export function MarkdownTool() {
               onClick={() => setMenuOpen((o) => !o)}
               disabled={busy}
             >
-              <Icon name="download" size={15} /> EXPORT
+              <Icon name="download" size={15} /> エクスポート
             </button>
             {menuOpen && (
               <div className="export-menu-list">
@@ -142,7 +148,7 @@ export function MarkdownTool() {
                 className={mode === m ? 'is-active' : ''}
                 onClick={() => setMode(m)}
               >
-                {m.toUpperCase()}
+                {VIEW_MODE_LABELS[m]}
               </button>
             ))}
           </div>

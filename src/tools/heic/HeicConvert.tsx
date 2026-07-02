@@ -28,6 +28,14 @@ export function HeicConvert() {
   const [outBytes, setOutBytes] = useState(0);
   const [outUrl, setOutUrl] = useObjectUrl();
 
+  // 変換済みの結果を破棄する。フォーマット/品質を変えたら再変換が必要なため、
+  // 古いプレビューや拡張子と中身が食い違うダウンロード対象を残さない。
+  const resetOutput = () => {
+    setOutBlob(null);
+    setOutBytes(0);
+    setOutUrl(null);
+  };
+
   const handleFiles = (files: File[]) => {
     const f = files[0];
     const err = validateHeicFile(f.name, f.size);
@@ -36,18 +44,24 @@ export function HeicConvert() {
       return;
     }
     setFile(f);
-    setOutBlob(null);
-    setOutBytes(0);
-    setOutUrl(null);
+    resetOutput();
     setError('');
   };
 
   const clearFile = () => {
     setFile(null);
-    setOutBlob(null);
-    setOutBytes(0);
-    setOutUrl(null);
+    resetOutput();
     setError('');
+  };
+
+  const changeFormat = (value: HeicOutputFormat) => {
+    setFormat(value);
+    resetOutput();
+  };
+
+  const changeQuality = (value: number) => {
+    setQuality(value);
+    resetOutput();
   };
 
   const handleConvert = async () => {
@@ -116,7 +130,7 @@ export function HeicConvert() {
             key={f.value}
             type="button"
             className={`seg${format === f.value ? ' is-active' : ''}`}
-            onClick={() => setFormat(f.value)}
+            onClick={() => changeFormat(f.value)}
           >
             {f.label}
           </button>
@@ -137,7 +151,7 @@ export function HeicConvert() {
             min={1}
             max={100}
             value={quality}
-            onChange={(e) => setQuality(Number(e.target.value))}
+            onChange={(e) => changeQuality(Number(e.target.value))}
           />
         </div>
       ) : (

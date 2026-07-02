@@ -4,7 +4,7 @@ import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
 import { downloadBlob } from '../../lib/download';
-import { timestampFileName } from '../../lib/filename';
+import { withExtension } from '../../lib/filename';
 import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
 import { Icon } from '../../app/icons';
@@ -53,12 +53,12 @@ export function PdfToImageTool() {
         setProgress({ current, total }),
       );
       if (images.length === 1) {
-        downloadBlob(images[0].blob, timestampFileName('jpg'));
+        downloadBlob(images[0].blob, withExtension(file.name, 'jpg'));
       } else {
         const zip = new JSZip();
         images.forEach((img) => zip.file(img.name, img.blob));
         const zipBlob = await zip.generateAsync({ type: 'blob' });
-        downloadBlob(zipBlob, timestampFileName('zip'));
+        downloadBlob(zipBlob, withExtension(file.name, 'zip'));
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : PDF_LOAD_ERROR);
@@ -82,8 +82,8 @@ export function PdfToImageTool() {
         <>
           <div className="selected-file">
             <span className="hint">選択中: {file.name}</span>
-            <button type="button" className="btn-ghost" onClick={clearFile}>
-              削除
+            <button type="button" className="btn-delete" onClick={clearFile}>
+              <Icon name="trash" size={14} /> 削除
             </button>
           </div>
 
