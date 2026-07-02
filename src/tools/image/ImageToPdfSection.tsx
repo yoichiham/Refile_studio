@@ -92,10 +92,15 @@ export function ImageToPdfSection() {
               <ImageThumb file={file} />
               <span className="file-order">{index + 1}.</span>
               <span className="file-name">{file.name}</span>
-              <button type="button" onClick={() => move(index, -1)} disabled={index === 0}>
+              <button type="button" aria-label="上へ移動" onClick={() => move(index, -1)} disabled={index === 0}>
                 ↑
               </button>
-              <button type="button" onClick={() => move(index, 1)} disabled={index === files.length - 1}>
+              <button
+                type="button"
+                aria-label="下へ移動"
+                onClick={() => move(index, 1)}
+                disabled={index === files.length - 1}
+              >
                 ↓
               </button>
               <button type="button" className="btn-ghost" onClick={() => remove(index)}>

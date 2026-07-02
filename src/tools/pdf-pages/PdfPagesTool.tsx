@@ -4,7 +4,7 @@ import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
 import { downloadBlob } from '../../lib/download';
-import { timestampFileName } from '../../lib/filename';
+import { withExtension } from '../../lib/filename';
 import { PDF_LOAD_ERROR } from '../../lib/pdfErrors';
 import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
@@ -57,12 +57,12 @@ export function PdfPagesTool() {
     try {
       const data = await file.arrayBuffer();
       if (mode === 'single') {
-        downloadBlob(await extractToSinglePdf(data, order), timestampFileName('pdf'));
+        downloadBlob(await extractToSinglePdf(data, order), withExtension(file.name, 'pdf'));
       } else {
         const parts = await splitToPdfs(data, order);
         const zip = new JSZip();
         parts.forEach((part) => zip.file(part.name, part.blob));
-        downloadBlob(await zip.generateAsync({ type: 'blob' }), timestampFileName('zip'));
+        downloadBlob(await zip.generateAsync({ type: 'blob' }), withExtension(file.name, 'zip'));
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : PDF_LOAD_ERROR);
@@ -92,11 +92,17 @@ export function PdfPagesTool() {
                 {index + 1} 番目（元 p.{pageNumber}）
               </div>
               <div className="thumb-actions">
-                <button type="button" onClick={() => setOrder((o) => movePage(o, index, -1))} disabled={index === 0}>
+                <button
+                  type="button"
+                  aria-label="前へ移動"
+                  onClick={() => setOrder((o) => movePage(o, index, -1))}
+                  disabled={index === 0}
+                >
                   ←
                 </button>
                 <button
                   type="button"
+                  aria-label="後ろへ移動"
                   onClick={() => setOrder((o) => movePage(o, index, 1))}
                   disabled={index === order.length - 1}
                 >
