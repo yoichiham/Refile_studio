@@ -4,7 +4,7 @@ import { PreviewPane } from '../../lib/components/PreviewPane';
 import { SizeCompare } from '../../lib/components/SizeCompare';
 import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { downloadBlob } from '../../lib/download';
-import { timestampFileName } from '../../lib/filename';
+import { withExtension } from '../../lib/filename';
 import { formatBytes } from '../../lib/format';
 import { canvasToBlob, drawToCanvas, loadImageElement } from '../../lib/image';
 import { useObjectUrl } from '../../lib/useObjectUrl';
@@ -177,7 +177,7 @@ export function ImageConvert() {
   };
 
   const download = () => {
-    if (outBlob) downloadBlob(outBlob, timestampFileName(info.ext));
+    if (file && outBlob) downloadBlob(outBlob, withExtension(file.name, info.ext));
   };
 
   const clearImage = () => {
@@ -219,8 +219,8 @@ export function ImageConvert() {
 
       {file && (
         <div className="btn-row">
-          <button type="button" className="btn-ghost" onClick={clearImage}>
-            選択した画像を削除
+          <button type="button" className="btn-delete" onClick={clearImage}>
+            <Icon name="trash" size={14} /> 選択した画像を削除
           </button>
         </div>
       )}
@@ -266,6 +266,8 @@ export function ImageConvert() {
                 className="preset"
                 onClick={() => setLock((v) => !v)}
                 title="アスペクト比の固定"
+                aria-label={lock ? 'アスペクト比を固定中（クリックで解除）' : 'アスペクト比の固定を解除中（クリックで固定）'}
+                aria-pressed={lock}
                 style={{ marginBottom: 2 }}
               >
                 {lock ? '🔒' : '🔓'}
@@ -298,27 +300,30 @@ export function ImageConvert() {
               ))}
             </div>
 
-            <div className="field">
-              <div className="slider-row">
-                <label className="field-label" style={{ margin: 0 }} htmlFor="img-q">
-                  品質
-                </label>
-                <span className="slider-value">{format === 'png' ? '—' : `${quality}%`}</span>
+            {format === 'png' ? (
+              <p className="field-note">PNG は可逆（ロスレス）形式のため、品質の指定はありません。</p>
+            ) : (
+              <div className="field">
+                <div className="slider-row">
+                  <label className="field-label" style={{ margin: 0 }} htmlFor="img-q">
+                    品質
+                  </label>
+                  <span className="slider-value">{quality}%</span>
+                </div>
+                <input
+                  id="img-q"
+                  type="range"
+                  min={1}
+                  max={100}
+                  value={quality}
+                  onChange={(e) => setQuality(Number(e.target.value))}
+                />
+                <div className="slider-scale">
+                  <span>低品質（小さいサイズ）</span>
+                  <span>高品質（大きいサイズ）</span>
+                </div>
               </div>
-              <input
-                id="img-q"
-                type="range"
-                min={1}
-                max={100}
-                value={quality}
-                disabled={format === 'png'}
-                onChange={(e) => setQuality(Number(e.target.value))}
-              />
-              <div className="slider-scale">
-                <span>低品質（小さいサイズ）</span>
-                <span>高品質（大きいサイズ）</span>
-              </div>
-            </div>
+            )}
 
             <ErrorMessage>{error || undefined}</ErrorMessage>
 
