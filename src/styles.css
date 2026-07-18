@@ -555,6 +555,13 @@ button {
     background 0.12s ease;
 }
 
+.dropzone.has-file {
+  border-style: solid;
+  border-color: var(--teal);
+  background: var(--teal-soft);
+  color: var(--text);
+}
+
 .dropzone.is-over {
   border-color: var(--accent);
   background: var(--accent-soft);
@@ -565,8 +572,18 @@ button {
   color: var(--text-faint);
 }
 
+.dropzone.has-file .dropzone-icon {
+  color: var(--teal);
+}
+
 .dropzone.is-over .dropzone-icon {
   color: var(--accent);
+}
+
+.dropzone-selected {
+  font-weight: 600;
+  font-size: 14px;
+  word-break: break-all;
 }
 
 .dropzone-hint {

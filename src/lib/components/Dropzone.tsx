@@ -9,6 +9,9 @@ interface DropzoneProps {
   label?: string;
   hint?: string;
   icon?: IconName;
+  /** 選択済みファイルの表示名（例: "photo.heic ・ 2.3 MB"、"3 ファイル選択中"）。
+   *  指定するとドロップエリア自体が選択状態の見た目に切り替わる。 */
+  selectedLabel?: string;
 }
 
 /** 全ツール共通の D&D 兼クリック選択の入力エリア（SPEC §7）。 */
@@ -19,6 +22,7 @@ export function Dropzone({
   label = 'ファイルをドラッグ&ドロップ、またはクリックして選択',
   hint,
   icon = 'pdf',
+  selectedLabel,
 }: DropzoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { isOver, dropzoneProps } = useDropzone(onFiles);
@@ -40,7 +44,7 @@ export function Dropzone({
 
   return (
     <div
-      className={`dropzone${isOver ? ' is-over' : ''}`}
+      className={`dropzone${isOver ? ' is-over' : ''}${selectedLabel ? ' has-file' : ''}`}
       role="button"
       tabIndex={0}
       onClick={openPicker}
@@ -50,8 +54,17 @@ export function Dropzone({
       <div className="dropzone-icon" aria-hidden>
         <Icon name={icon} size={30} />
       </div>
-      <div>{label}</div>
-      {hint && <div className="dropzone-hint">{hint}</div>}
+      {selectedLabel ? (
+        <>
+          <div className="dropzone-selected">{selectedLabel}</div>
+          <div className="dropzone-hint">クリックまたはドラッグで変更</div>
+        </>
+      ) : (
+        <>
+          <div>{label}</div>
+          {hint && <div className="dropzone-hint">{hint}</div>}
+        </>
+      )}
       <input
         ref={inputRef}
         type="file"

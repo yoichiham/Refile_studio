@@ -106,19 +106,15 @@ export function HeicConvert() {
         icon="image"
         label="HEIC / HEIF ファイルをドラッグ&ドロップ、またはクリックして選択"
         hint="iPhone の写真（.heic / .heif）・最大50MB"
+        selectedLabel={file ? `${file.name} ・ ${formatBytes(file.size)}` : undefined}
       />
 
       {file && (
-        <>
-          <p className="hint" style={{ marginTop: 12 }}>
-            選択中: {file.name} ・ {formatBytes(file.size)}
-          </p>
-          <div className="btn-row">
-            <button type="button" className="btn-delete" onClick={clearFile}>
-              <Icon name="trash" size={14} /> 選択したファイルを削除
-            </button>
-          </div>
-        </>
+        <div className="btn-row">
+          <button type="button" className="btn-delete" onClick={clearFile}>
+            <Icon name="trash" size={14} /> 選択したファイルを削除
+          </button>
+        </div>
       )}
 
       <h3 className="section-label" style={{ marginTop: 22 }}>
