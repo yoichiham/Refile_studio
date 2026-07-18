@@ -5,6 +5,7 @@ import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
 import { downloadBlob } from '../../lib/download';
 import { withExtension } from '../../lib/filename';
+import { formatBytes } from '../../lib/format';
 import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
 import { Icon } from '../../app/icons';
@@ -76,12 +77,12 @@ export function PdfToImageTool() {
         accept="application/pdf"
         onFiles={handleFiles}
         label="PDF をドラッグ&ドロップ、またはクリックして選択"
+        selectedLabel={file ? `${file.name} ・ ${formatBytes(file.size)}` : undefined}
       />
 
       {file && (
         <>
           <div className="selected-file">
-            <span className="hint">選択中: {file.name}</span>
             <button type="button" className="btn-delete" onClick={clearFile}>
               <Icon name="trash" size={14} /> 削除
             </button>

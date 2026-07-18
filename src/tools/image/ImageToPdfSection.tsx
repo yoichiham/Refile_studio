@@ -83,6 +83,7 @@ export function ImageToPdfSection() {
         icon="image"
         label="画像をドラッグ&ドロップ、またはクリックして選択（複数可）"
         hint="PNG / JPEG / WebP / GIF / BMP（各最大10MB）。1画像=1ページ・A4縦"
+        selectedLabel={files.length > 0 ? `${files.length} 枚選択中` : undefined}
       />
 
       {files.length > 0 && (

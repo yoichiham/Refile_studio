@@ -80,6 +80,7 @@ export function PdfMergeTool() {
         multiple
         onFiles={handleFiles}
         label="PDF をドラッグ&ドロップ、またはクリックして選択（複数可）"
+        selectedLabel={files.length > 0 ? `${files.length} ファイル選択中` : undefined}
       />
 
       {files.length > 0 && (

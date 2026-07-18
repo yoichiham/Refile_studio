@@ -5,6 +5,7 @@ import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
 import { downloadBlob } from '../../lib/download';
 import { withExtension } from '../../lib/filename';
+import { formatBytes } from '../../lib/format';
 import { PDF_LOAD_ERROR } from '../../lib/pdfErrors';
 import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
@@ -79,6 +80,7 @@ export function PdfPagesTool() {
         accept="application/pdf"
         onFiles={handleFiles}
         label="PDF をドラッグ&ドロップ、またはクリックして選択"
+        selectedLabel={file ? `${file.name} ・ ${formatBytes(file.size)}` : undefined}
       />
 
       {loadingThumbs && <Loading label="ページを読み込み中…" />}
