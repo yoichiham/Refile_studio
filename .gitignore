@@ -7,3 +7,6 @@ dist-ssr
 
 .playwright-mcp
 .claude
+
+# アプリ紹介スライド（手元作業用、アプリ本体とは無関係）
+refile-studio.html
