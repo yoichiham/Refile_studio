@@ -108,6 +108,7 @@ export function MarkdownTool() {
             aria-label="ファイル名"
             spellCheck={false}
           />
+          <span className="filename-ext" aria-hidden="true">.md</span>
         </span>
       ),
       actions: (
