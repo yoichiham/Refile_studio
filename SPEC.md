@@ -54,8 +54,8 @@
   - Markdown解析：markdown-it で AST を得て pdfmake のドキュメント定義へ変換
   - Markdown→PDF：pdfmake（Noto Sans JP を vfs に動的登録）
   - PDF操作（結合/分割/ページ操作/画像埋め込み）：pdf-lib。役割分担＝pdfjs-dist は描画、pdf-lib は編集。
-- デプロイ：GitHub Pages（静的）。Vite の `base` を `'/<リポジトリ名>/'` に設定。
-- PWA：vite-plugin-pwa で manifest＋Service Worker を生成し、アセットをキャッシュしてオフライン動作。SW/manifest の scope を base path（`'/<リポジトリ名>/'`）に整合させる。
+- デプロイ：GitHub Pages（静的）。Vite の `base` を `'./'`（相対パス）に設定し、HashRouter と組み合わせてリポジトリ名に依存せずアセットを解決する。
+- PWA：vite-plugin-pwa で manifest＋Service Worker を生成し、アセットをキャッシュしてオフライン動作。SW/manifest の scope を base path（`'./'`）に整合させる。
 
 ### 2.1 不変条件
 
@@ -230,7 +230,7 @@ iPhone の HEIC/HEIF 写真を JPEG/PNG に変換する。
 - セキュリティ/プライバシー：サーバー送信なし。外部解析・トラッキングなし。
 - コスト：静的ホスティングのみ（実質ゼロ）。
 - バンドル：Noto Sans JP の全グリフ埋め込みはサイズ過大 → フォントは動的ロードし vfs 登録（初回PDF生成時に fetch）。lamejs（MP3）・heic2any（HEIC）も各ツール初回利用時に動的 import し、メインバンドルから分離。
-- PWA：オフライン利用可能（Service Worker キャッシュ）。初回ロード後はネット不要。更新は autoUpdate。動的 import される lamejs/heic2any は未ロード状態でオフラインになると利用不可。
+- PWA：オフライン利用可能（Service Worker キャッシュ）。更新は autoUpdate。動的 import される lamejs/heic2any の JS チャンクは build 成果物としてプリキャッシュ対象に含まれるため初回ロード後は利用可能。ただし Markdown→PDF が使う日本語フォント（Noto Sans JP、計8.8MB）はプリキャッシュ対象外で runtime cache（CacheFirst）管理のため、**オンライン中に一度も Markdown→PDF を実行していない状態でオフラインになった場合のみ**PDF出力が失敗する。
 
 ## 9. 主要トレードオフ・既知の制約
 
@@ -257,4 +257,4 @@ iPhone の HEIC/HEIF 写真を JPEG/PNG に変換する。
 - GitHub Pages にデプロイ後、`#/<tool-id>` 直アクセス・リロードで各ツールが表示される（404にならない）。
 - どの操作でもネットワークにファイル/テキストが送信されない（DevToolsで送信なしを確認）。
 - 全ファイル系ツールでドラッグ&ドロップでファイル投入できる。
-- オフライン（ネット切断）でも初回ロード済みなら各ツールが動作する。
+- オフライン（ネット切断）でも初回ロード済みなら各ツールが動作する（Markdown→PDF はオンライン中に一度実行してフォントを取得済みであること）。
