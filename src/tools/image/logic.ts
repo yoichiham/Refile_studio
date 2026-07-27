@@ -58,6 +58,31 @@ export function scaleDimensions(
   };
 }
 
+export type BatchResizeSpec =
+  | { kind: 'percent'; percent: number }
+  | { kind: 'longEdge'; px: number }
+  | { kind: 'none' };
+
+/**
+ * 一括変換用の目標寸法を求める（縦横比の異なる画像群に安全に適用できる指定方法のみ）。
+ * longEdge は長辺をその値に収める（元の長辺より大きい場合は拡大しない）。
+ */
+export function batchTargetSize(
+  origWidth: number,
+  origHeight: number,
+  spec: BatchResizeSpec,
+): { width: number; height: number } {
+  if (spec.kind === 'percent') return scaleDimensions(origWidth, origHeight, spec.percent);
+  if (spec.kind === 'none') return { width: origWidth, height: origHeight };
+  const longEdge = Math.max(origWidth, origHeight);
+  if (spec.px >= longEdge) return { width: origWidth, height: origHeight };
+  const scale = spec.px / longEdge;
+  return {
+    width: Math.max(1, Math.round(origWidth * scale)),
+    height: Math.max(1, Math.round(origHeight * scale)),
+  };
+}
+
 /** 目標寸法を検証し、範囲外なら日本語メッセージ、正常なら null。 */
 export function validateDimensions(width: number, height: number): string | null {
   if (!isValidDimension(width) || !isValidDimension(height)) return INVALID_SIZE_ERROR;

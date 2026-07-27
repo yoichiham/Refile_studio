@@ -12,6 +12,7 @@ import { validateImageFile } from '../../lib/validation';
 import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
 import { Icon } from '../../app/icons';
+import { type ImageConvertResult, convertLoadedImage } from './convert';
 import {
   type CropRect,
   type OutputFormat,
@@ -21,7 +22,6 @@ import {
   findQualityForMaxSize,
   fitDimension,
   formatFromMime,
-  formatInfo,
   scaleDimensions,
   validateDimensions,
 } from './logic';
@@ -43,17 +43,16 @@ export function ImageConvert() {
   const [quality, setQuality] = useToolState('image.quality', 92);
 
   const [img, setImg] = useState<HTMLImageElement | null>(null);
-  const [outBlob, setOutBlob] = useState<Blob | null>(null);
-  const [outBytes, setOutBytes] = useState(0);
+  const [output, setOutput] = useState<ImageConvertResult | null>(null);
   const [error, setError] = useState('');
   const [origUrl, setOrigUrl] = useObjectUrl();
   const [outUrl, setOutUrl] = useObjectUrl();
-  // YouTube サムネイル等のクロップモード。null なら通常のリサイズ動作
-  const [cropRect, setCropRect] = useState<CropRect | null>(null);
+  // YouTube サムネイル等のクロップモード。ツール切替後も保持し、戻った際に
+  // 元画像が意図せず引き伸ばされる（クロップなしで再エンコードされる）事故を防ぐ
+  const [cropRect, setCropRect] = useToolState<CropRect | null>('image.cropRect', null);
   const [ytBusy, setYtBusy] = useState(false);
 
   const origBytes = file?.size ?? 0;
-  const info = formatInfo(format);
 
   // 再表示時（img はローカル）に保持された file から復元
   useEffect(() => {
@@ -106,18 +105,26 @@ export function ImageConvert() {
     const dimError = validateDimensions(w, h);
     if (dimError) {
       setError(dimError);
+      // 寸法エラー中は古い変換結果を破棄する。outBlob を残したままだと
+      // エラー表示中でも「ダウンロード」ボタンが有効なままになってしまう
+      setOutput(null);
+      setOutUrl(null);
       return;
     }
     setError('');
     let cancelled = false;
     (async () => {
       try {
-        const canvas = drawToCanvas(img, w, h, format === 'jpeg' ? '#ffffff' : undefined, cropRect ?? undefined);
-        const blob = await canvasToBlob(canvas, info.mime, format === 'png' ? undefined : quality / 100);
+        const result = await convertLoadedImage(img, {
+          width: w,
+          height: h,
+          format,
+          quality,
+          cropRect: cropRect ?? undefined,
+        });
         if (cancelled) return;
-        setOutBlob(blob);
-        setOutBytes(blob.size);
-        setOutUrl(blob);
+        setOutput(result);
+        setOutUrl(result.blob);
       } catch {
         if (!cancelled) setError('画像の変換に失敗しました');
       }
@@ -125,7 +132,7 @@ export function ImageConvert() {
     return () => {
       cancelled = true;
     };
-  }, [img, widthStr, heightStr, format, quality, info.mime, cropRect, setOutUrl]);
+  }, [img, widthStr, heightStr, format, quality, cropRect, setOutUrl]);
 
   const applyPercent = (p: number) => {
     if (!img) return;
@@ -183,7 +190,7 @@ export function ImageConvert() {
   };
 
   const download = () => {
-    if (file && outBlob) downloadBlob(outBlob, withExtension(file.name, info.ext));
+    if (file && output) downloadBlob(output.blob, withExtension(file.name, output.ext));
   };
 
   const clearImage = () => {
@@ -193,8 +200,7 @@ export function ImageConvert() {
     setWidthStr('');
     setHeightStr('');
     setPercent(100);
-    setOutBlob(null);
-    setOutBytes(0);
+    setOutput(null);
     setOrigUrl(null);
     setOutUrl(null);
     setError('');
@@ -206,12 +212,12 @@ export function ImageConvert() {
       title: '画像変換',
       meta: file?.name,
       actions: (
-        <button type="button" className="topbar-btn is-primary" onClick={download} disabled={!outBlob}>
+        <button type="button" className="topbar-btn is-primary" onClick={download} disabled={!output}>
           <Icon name="download" size={15} /> ダウンロード
         </button>
       ),
     },
-    [file, outBytes, outBlob],
+    [file, output],
   );
 
   return (
@@ -333,10 +339,10 @@ export function ImageConvert() {
 
             <ErrorMessage>{error || undefined}</ErrorMessage>
 
-            {outBytes > 0 && !error && (
+            {output && !error && (
               <SizeCompare
                 beforeBytes={origBytes}
-                afterBytes={outBytes}
+                afterBytes={output.blob.size}
                 beforeLabel="元のサイズ"
                 afterLabel={`変換後 (${format.toUpperCase()})`}
                 beforeDim={`${img.naturalWidth} × ${img.naturalHeight}px`}

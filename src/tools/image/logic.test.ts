@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   INVALID_SIZE_ERROR,
   YOUTUBE_THUMBNAIL,
+  batchTargetSize,
   coverCropRect,
   findQualityForMaxSize,
   fitDimension,
@@ -75,6 +76,32 @@ describe('coverCropRect', () => {
 describe('YOUTUBE_THUMBNAIL', () => {
   it('YouTube 推奨の 1280x720・上限 2MB を持つ', () => {
     expect(YOUTUBE_THUMBNAIL).toEqual({ width: 1280, height: 720, maxBytes: 2 * 1024 * 1024 });
+  });
+});
+
+describe('batchTargetSize', () => {
+  it('percent: パーセント指定で拡縮する', () => {
+    expect(batchTargetSize(1000, 500, { kind: 'percent', percent: 50 })).toEqual({ width: 500, height: 250 });
+  });
+
+  it('longEdge: 横長画像は幅を長辺基準で縮小する', () => {
+    expect(batchTargetSize(1600, 900, { kind: 'longEdge', px: 800 })).toEqual({ width: 800, height: 450 });
+  });
+
+  it('longEdge: 縦長画像は高さを長辺基準で縮小する', () => {
+    expect(batchTargetSize(900, 1600, { kind: 'longEdge', px: 800 })).toEqual({ width: 450, height: 800 });
+  });
+
+  it('longEdge: 指定値が元の長辺より大きい場合は拡大しない（原寸のまま）', () => {
+    expect(batchTargetSize(400, 300, { kind: 'longEdge', px: 800 })).toEqual({ width: 400, height: 300 });
+  });
+
+  it('none: 原寸のまま返す', () => {
+    expect(batchTargetSize(640, 480, { kind: 'none' })).toEqual({ width: 640, height: 480 });
+  });
+
+  it('極小パーセントでも最小1pxにクランプする', () => {
+    expect(batchTargetSize(10, 10, { kind: 'percent', percent: 1 })).toEqual({ width: 1, height: 1 });
   });
 });
 
