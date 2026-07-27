@@ -4,8 +4,10 @@ import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
 import { downloadBlob } from '../../lib/download';
+import { rejectionMessage, partitionFiles } from '../../lib/fileIntake';
 import { withExtension } from '../../lib/filename';
 import { formatBytes } from '../../lib/format';
+import { validatePdfFile } from '../../lib/pdfValidation';
 import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
 import { Icon } from '../../app/icons';
@@ -37,8 +39,9 @@ export function PdfToImageTool() {
   }, [file]);
 
   const handleFiles = (files: File[]) => {
-    setFile(files[0]);
-    setError('');
+    const { valid, rejected } = partitionFiles(files, validatePdfFile);
+    setError(rejected.length > 0 ? rejectionMessage(rejected) : '');
+    if (valid.length > 0) setFile(valid[0]);
   };
 
   const clearFile = () => {

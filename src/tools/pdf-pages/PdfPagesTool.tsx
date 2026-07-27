@@ -4,9 +4,11 @@ import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
 import { downloadBlob } from '../../lib/download';
+import { rejectionMessage, partitionFiles } from '../../lib/fileIntake';
 import { withExtension } from '../../lib/filename';
 import { formatBytes } from '../../lib/format';
 import { PDF_LOAD_ERROR } from '../../lib/pdfErrors';
+import { validatePdfFile } from '../../lib/pdfValidation';
 import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
 import { Icon } from '../../app/icons';
@@ -29,7 +31,10 @@ export function PdfPagesTool() {
   }, [pages]);
 
   const handleFiles = async (files: File[]) => {
-    const f = files[0];
+    const { valid, rejected } = partitionFiles(files, validatePdfFile);
+    if (rejected.length > 0) setError(rejectionMessage(rejected));
+    const f = valid[0];
+    if (!f) return;
     setFile(f);
     setError('');
     setPages([]);
@@ -123,7 +128,7 @@ export function PdfPagesTool() {
 
       {busy && <Loading label="書き出し中…" />}
 
-      {file && order.length > 0 && (
+      {file && (
         <div className="btn-row">
           <button type="button" className="btn" onClick={() => runExport('single')} disabled={busy}>
             1つの PDF にまとめる

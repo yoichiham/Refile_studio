@@ -3,6 +3,7 @@ import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
 import { downloadBlob } from '../../lib/download';
+import { rejectionMessage, partitionFiles } from '../../lib/fileIntake';
 import { timestampFileName } from '../../lib/filename';
 import { validateImageFile } from '../../lib/validation';
 import { useToolHeader } from '../../app/header';
@@ -29,14 +30,8 @@ export function ImageToPdfSection() {
   const [error, setError] = useState('');
 
   const handleFiles = (incoming: File[]) => {
-    const valid: File[] = [];
-    let firstError = '';
-    for (const file of incoming) {
-      const err = validateImageFile(file);
-      if (err) firstError ||= err;
-      else valid.push(file);
-    }
-    setError(firstError);
+    const { valid, rejected } = partitionFiles(incoming, validateImageFile);
+    setError(rejected.length > 0 ? rejectionMessage(rejected) : '');
     if (valid.length > 0) setFiles((prev) => [...prev, ...valid]);
   };
 
@@ -117,7 +112,7 @@ export function ImageToPdfSection() {
       {busy && <Loading label="PDF を生成中…" />}
 
       <div className="btn-row">
-        <button type="button" className="btn" onClick={handleConvert} disabled={files.length === 0 || busy}>
+        <button type="button" className="btn" onClick={handleConvert} disabled={busy}>
           PDF にまとめてダウンロード
         </button>
       </div>

@@ -3,8 +3,10 @@ import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
 import { downloadBlob } from '../../lib/download';
+import { rejectionMessage, partitionFiles } from '../../lib/fileIntake';
 import { timestampFileName } from '../../lib/filename';
 import { PDF_LOAD_ERROR } from '../../lib/pdfErrors';
+import { validatePdfFile } from '../../lib/pdfValidation';
 import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
 import { Icon } from '../../app/icons';
@@ -39,8 +41,9 @@ export function PdfMergeTool() {
   const [error, setError] = useState('');
 
   const handleFiles = (incoming: File[]) => {
-    setError('');
-    setFiles((prev) => [...prev, ...incoming]);
+    const { valid, rejected } = partitionFiles(incoming, validatePdfFile);
+    setError(rejected.length > 0 ? rejectionMessage(rejected) : '');
+    if (valid.length > 0) setFiles((prev) => [...prev, ...valid]);
   };
 
   const move = (index: number, delta: number) => {
