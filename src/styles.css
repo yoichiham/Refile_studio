@@ -12,11 +12,27 @@
   --accent: #2f6df6;
   --accent-hover: #245fe0;
   --accent-soft: #eef3ff;
+  /* accent を「塗り」（背景に敷く色）と「文字色」で分離。
+     ライトモードでは同値だが、ダークモードでは暗背景での可読性のため
+     文字色側だけ明るくする必要があるため独立トークンにしている。 */
+  --accent-text: #2f6df6;
+  --on-accent: #ffffff;
   --teal: #1aa179;
   --teal-soft: #e7f6f0;
   --green: #18a058;
   --danger: #d92d20;
   --danger-soft: #fde8e6;
+  --danger-border: #f4c4bf;
+  --warn: #b25e02;
+  --warn-soft: #fff4e5;
+  --warn-border: #f0d3a8;
+  /* 透過PNGの下地・PDFの紙面。ダークモードでも白のまま固定する
+     （--bg に寄せると透過部分が真っ黒になり、PDFプレビューが不自然になる）。 */
+  --canvas-paper: #ffffff;
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.12);
+  --shadow-accent: 0 4px 12px rgba(47, 109, 246, 0.28);
+  --shadow-card: 0 6px 18px rgba(47, 109, 246, 0.1);
   --radius: 12px;
   --radius-sm: 8px;
   --sidebar-w: 256px;
@@ -141,7 +157,7 @@ button {
 }
 
 .brand-accent {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .nav {
@@ -217,9 +233,9 @@ button {
 
 .nav-item.is-active {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(47, 109, 246, 0.28);
+  box-shadow: var(--shadow-accent);
 }
 
 .nav-icon {
@@ -231,7 +247,7 @@ button {
 }
 
 .nav-item.is-active .nav-icon {
-  color: #fff;
+  color: var(--on-accent);
 }
 
 /* ---------- Content area ---------- */
@@ -272,7 +288,7 @@ button {
 .topbar-icon {
   display: inline-flex;
   align-items: center;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .topbar-title {
@@ -396,14 +412,14 @@ button {
 
 .tool-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 6px 18px rgba(47, 109, 246, 0.1);
+  box-shadow: var(--shadow-card);
   transform: translateY(-1px);
 }
 
 .tool-card-icon {
   display: flex;
   align-items: flex-start;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .tool-card-title {
@@ -551,7 +567,7 @@ button {
 .dropzone.is-over {
   border-color: var(--accent);
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .dropzone-icon {
@@ -563,7 +579,7 @@ button {
 }
 
 .dropzone.is-over .dropzone-icon {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .dropzone-selected {
@@ -659,7 +675,7 @@ select:focus {
 .preset.is-active {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .preset:disabled {
@@ -702,7 +718,7 @@ select:focus {
 .segmented .seg.is-active {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 /* quality slider */
@@ -714,7 +730,7 @@ select:focus {
 }
 
 .slider-value {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
   font-size: 16px;
 }
@@ -765,7 +781,7 @@ input[type='range'] {
 }
 
 .compare-col.is-after .compare-size {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .compare-col .compare-dim {
@@ -803,7 +819,7 @@ input[type='range'] {
   max-height: 460px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--canvas-paper);
 }
 
 .preview-empty {
@@ -823,7 +839,7 @@ input[type='range'] {
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   cursor: pointer;
   transition: background 0.12s ease;
 }
@@ -899,7 +915,7 @@ input[type='range'] {
 }
 
 .topbar-btn.is-primary {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .topbar-btn:disabled {
@@ -946,7 +962,7 @@ input[type='range'] {
 
 .view-toggle button.is-active {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 /* EXPORT ドロップダウン（.md / PDF 選択） */
@@ -963,7 +979,7 @@ input[type='range'] {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   z-index: 30;
 }
@@ -983,14 +999,14 @@ input[type='range'] {
 
 .export-menu-list button:hover {
   background: var(--bg-soft);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* ---------- Messages ---------- */
 .error-message {
   background: var(--danger-soft);
   color: var(--danger);
-  border: 1px solid #f4c4bf;
+  border: 1px solid var(--danger-border);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
   font-size: 13px;
@@ -1006,7 +1022,7 @@ input[type='range'] {
 .link-button {
   background: none;
   border: none;
-  color: var(--accent);
+  color: var(--accent-text);
   font: inherit;
   font-size: 12.5px;
   cursor: pointer;
@@ -1184,8 +1200,8 @@ input[type='range'] {
   max-height: 460px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background: #fff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  background: var(--canvas-paper);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ---------- Markdown preview ---------- */
@@ -1217,7 +1233,7 @@ input[type='range'] {
   background: var(--accent-soft);
   border: 2px dashed var(--accent);
   border-radius: var(--radius);
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
   font-size: 15px;
   pointer-events: none;
