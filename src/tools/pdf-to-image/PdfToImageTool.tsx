@@ -17,18 +17,22 @@ export function PdfToImageTool() {
   const [file, setFile] = useToolState<File | null>('pdfimg.file', null);
   const [quality, setQuality] = useToolState<Quality>('pdfimg.quality', 'standard');
   const [thumbSrc, setThumbSrc] = useState<string | null>(null);
+  const [thumbError, setThumbError] = useState('');
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!file) { setThumbSrc(null); return; }
+    if (!file) { setThumbSrc(null); setThumbError(''); return; }
     let cancelled = false;
+    setThumbError('');
     file
       .arrayBuffer()
       .then((data) => renderPdfFirstPage(data, 520))
       .then((url) => { if (!cancelled) setThumbSrc(url); })
-      .catch(() => {});
+      .catch((e: unknown) => {
+        if (!cancelled) setThumbError(e instanceof Error ? e.message : PDF_LOAD_ERROR);
+      });
     return () => { cancelled = true; };
   }, [file]);
 
@@ -40,6 +44,7 @@ export function PdfToImageTool() {
   const clearFile = () => {
     setFile(null);
     setThumbSrc(null);
+    setThumbError('');
     setError('');
   };
 
@@ -89,7 +94,9 @@ export function PdfToImageTool() {
           </div>
 
           <div className="pdf-preview">
-            {thumbSrc ? (
+            {thumbError ? (
+              <div className="preview-empty">{thumbError}</div>
+            ) : thumbSrc ? (
               <img src={thumbSrc} alt="1ページ目プレビュー" />
             ) : (
               <div className="preview-empty">プレビューを読み込み中…</div>

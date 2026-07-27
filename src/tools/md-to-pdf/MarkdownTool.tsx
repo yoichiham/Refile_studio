@@ -166,7 +166,7 @@ export function MarkdownTool() {
 
       <div className={`md-split${mode !== 'split' ? ' is-single' : ''}`}>
         {mode !== 'preview' && (
-          <div className={`md-editor${isMdOver ? ' is-md-drop' : ''}`} {...mdDropProps}>
+          <div className="md-editor" {...mdDropProps}>
             {isMdOver && <div className="md-drop-overlay">.md ファイルをドロップして読み込む</div>}
             <textarea
               value={text}

@@ -234,25 +234,6 @@ button {
   color: #fff;
 }
 
-.sidebar-foot {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 10px 4px;
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 0 3px rgba(24, 160, 88, 0.18);
-}
-
 /* ---------- Content area ---------- */
 .content {
   flex: 1;
@@ -651,17 +632,6 @@ select:focus {
   margin-bottom: 0;
 }
 
-.checkbox {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-}
-
-.checkbox input {
-  width: auto;
-}
-
 /* preset / segmented buttons */
 .presets {
   display: flex;
@@ -733,46 +703,6 @@ select:focus {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
-}
-
-/* format flow chip (入力 → 出力) */
-.format-flow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.format-chip {
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  padding: 8px 14px;
-  text-align: center;
-  min-width: 76px;
-}
-
-.format-chip .chip-label {
-  font-size: 10.5px;
-  color: var(--text-muted);
-}
-
-.format-chip .chip-value {
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.format-chip.is-out {
-  background: var(--accent-soft);
-  border-color: #cfe0ff;
-}
-
-.format-chip.is-out .chip-value {
-  color: var(--accent);
-}
-
-.format-arrow {
-  color: var(--text-faint);
-  font-size: 18px;
 }
 
 /* quality slider */

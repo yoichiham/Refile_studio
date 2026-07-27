@@ -1,4 +1,8 @@
-/** Blob をローカルにダウンロードさせる（サーバー送信なし。SPEC §2.1-1）。 */
+/**
+ * Blob をローカルにダウンロードさせる（サーバー送信なし。SPEC §2.1-1）。
+ * revoke は click 直後ではなく遅延実行する。Safari/Firefox では大容量 Blob の
+ * ダウンロード開始前に objectURL が失効し、ダウンロードが失敗することがあるため。
+ */
 export function downloadBlob(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -7,7 +11,7 @@ export function downloadBlob(blob: Blob, fileName: string): void {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 /** 文字列を指定 MIME の Blob にしてダウンロードする。 */

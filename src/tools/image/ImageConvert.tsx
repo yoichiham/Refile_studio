@@ -111,12 +111,16 @@ export function ImageConvert() {
     setError('');
     let cancelled = false;
     (async () => {
-      const canvas = drawToCanvas(img, w, h, format === 'jpeg' ? '#ffffff' : undefined, cropRect ?? undefined);
-      const blob = await canvasToBlob(canvas, info.mime, format === 'png' ? undefined : quality / 100);
-      if (cancelled) return;
-      setOutBlob(blob);
-      setOutBytes(blob.size);
-      setOutUrl(blob);
+      try {
+        const canvas = drawToCanvas(img, w, h, format === 'jpeg' ? '#ffffff' : undefined, cropRect ?? undefined);
+        const blob = await canvasToBlob(canvas, info.mime, format === 'png' ? undefined : quality / 100);
+        if (cancelled) return;
+        setOutBlob(blob);
+        setOutBytes(blob.size);
+        setOutUrl(blob);
+      } catch {
+        if (!cancelled) setError('画像の変換に失敗しました');
+      }
     })();
     return () => {
       cancelled = true;
@@ -171,6 +175,8 @@ export function ImageConvert() {
       setPercent(null);
       setQuality(Math.round(q * 100));
       setError('');
+    } catch {
+      setError('YouTube サムネイルを生成できませんでした');
     } finally {
       setYtBusy(false);
     }
