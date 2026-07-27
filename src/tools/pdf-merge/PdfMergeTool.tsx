@@ -14,18 +14,23 @@ import { mergePdfs } from './merge';
 
 function PdfThumb({ file }: { file: File }) {
   const [src, setSrc] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     let cancelled = false;
     file
       .arrayBuffer()
       .then((data) => renderPdfFirstPage(data))
       .then((url) => { if (!cancelled) setSrc(url); })
-      .catch(() => {});
+      .catch(() => { if (!cancelled) setFailed(true); });
     return () => { cancelled = true; };
   }, [file]);
-  return src
-    ? <img src={src} className="file-thumb" alt="" />
-    : <span className="file-thumb-placeholder" />;
+  if (src) return <img src={src} className="file-thumb" alt="" />;
+  return (
+    <span
+      className="file-thumb-placeholder"
+      title={failed ? 'プレビューを表示できません' : undefined}
+    />
+  );
 }
 
 export function PdfMergeTool() {

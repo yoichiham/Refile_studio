@@ -159,7 +159,11 @@ export function Icon({ name, size = 18, ...rest }: IconProps) {
           <path d="M14 3l3 3-3 3" />
         </svg>
       );
-    default:
-      return null;
+    default: {
+      // IconName に追加したのに case を書き忘れると、ここで型エラーになる
+      // （書き忘れは実行時に「無言で何も描画されない」形で現れるため）。
+      const exhaustiveCheck: never = name;
+      return exhaustiveCheck;
+    }
   }
 }
