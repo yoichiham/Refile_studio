@@ -21,7 +21,7 @@
 
 - React + TypeScript + Vite / react-router(HashRouter) / pdfjs-dist + JSZip / pdfmake + Noto Sans JP / pdf-lib（PDF編集）/ heic2any（HEIC）/ @breezystack/lamejs + Web Audio API（音声）/ vite-plugin-pwa / Canvas API。詳細は SPEC §2。
 - **依存の落とし穴**：
-  - **Vite base**：GitHub Pages 用に `base: '/<リポジトリ名>/'` 必須。未設定だとアセットが404になる。
+  - **Vite base**：`base: './'`（相対パス）。HashRouter と組み合わせるとリポジトリ名に依存せずアセットが解決できる。固定パスにするなら `'/<リポジトリ名>/'` だが本プロジェクトでは不採用。
   - **ルーター**：必ず HashRouter。BrowserRouter は Pages で直アクセス/リロード時に404になる。
   - **pdfjs worker**：`GlobalWorkerOptions.workerSrc` を Vite の `?url` インポートで設定。バージョン不一致でレンダリング失敗。
   - **Noto Sans JP**：全グリフ埋め込みはバンドル数MB級。動的 fetch → pdfmake vfs 登録で回避。
@@ -31,7 +31,7 @@
   - **HEIC の MIME は不定**：OS により `image/heic` が空になることがあるため、HEIC/HEIF は**拡張子でバリデーション**する。
   - **heic2any / lamejs は動的 import**：バンドル肥大（heic2any 約1.3MB）を避けるため各ツール内で `await import(...)`。メインバンドルに静的 import しないこと。
   - **重い Blob 生成**：Uint8Array から Blob を作る際は TS 5.7 の型制約（ArrayBufferLike）回避のため `src/lib/download.ts` の `bytesToBlob` を使う。
-  - **PWA**：Service Worker / manifest の scope を base path（`/<リポジトリ名>/`）に整合させる。ズレるとオフライン時に読み込めない。
+  - **PWA**：Service Worker / manifest の scope を base path（`'./'`）に整合させる。ズレるとオフライン時に読み込めない。
 
 ## 設計上の不変条件（破ってはならない）
 
