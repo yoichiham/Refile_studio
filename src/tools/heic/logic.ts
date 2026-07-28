@@ -10,6 +10,9 @@ export const MAX_HEIC_BYTES = 50 * 1024 * 1024;
 /** 受付対象の拡張子。HEIC の MIME は OS により空になるため拡張子で判定する。 */
 export const HEIC_EXTENSIONS = ['.heic', '.heif'] as const;
 
+/** 一括変換の上限件数（50MB × 20 で最大約1GB。実機メモリを考慮した上限）。 */
+export const MAX_HEIC_BATCH = 20;
+
 export interface HeicOutputInfo {
   mime: string;
   ext: string;
