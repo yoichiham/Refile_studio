@@ -17,7 +17,10 @@ export type IconName =
   | 'copy'
   | 'trash'
   | 'menu'
-  | 'chevron';
+  | 'chevron'
+  | 'sun'
+  | 'moon'
+  | 'monitor';
 
 interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
   name: IconName;
@@ -157,6 +160,34 @@ export function Icon({ name, size = 18, ...rest }: IconProps) {
           <circle cx="8.5" cy="8.5" r="1.5" />
           <polyline points="21 15 16 10 5 21" />
           <path d="M14 3l3 3-3 3" />
+        </svg>
+      );
+    case 'sun':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="4" />
+          <line x1="12" y1="2" x2="12" y2="4" />
+          <line x1="12" y1="20" x2="12" y2="22" />
+          <line x1="4.2" y1="4.2" x2="5.6" y2="5.6" />
+          <line x1="18.4" y1="18.4" x2="19.8" y2="19.8" />
+          <line x1="2" y1="12" x2="4" y2="12" />
+          <line x1="20" y1="12" x2="22" y2="12" />
+          <line x1="4.2" y1="19.8" x2="5.6" y2="18.4" />
+          <line x1="18.4" y1="5.6" x2="19.8" y2="4.2" />
+        </svg>
+      );
+    case 'moon':
+      return (
+        <svg {...common}>
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+        </svg>
+      );
+    case 'monitor':
+      return (
+        <svg {...common}>
+          <rect x="2" y="4" width="20" height="13" rx="2" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+          <line x1="12" y1="17" x2="12" y2="21" />
         </svg>
       );
     default: {

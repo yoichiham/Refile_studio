@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light;
   --bg: #ffffff;
   --bg-soft: #f6f7f9;
   --bg-sidebar: #f0f2f8;
@@ -38,6 +39,45 @@
   --sidebar-w: 256px;
   --sidebar-mini-w: 60px;
   --topbar-h: 60px;
+}
+
+/*
+ * ダークパレット。JS（ThemeProvider）が解決済みの値を <html data-theme> に
+ * 書き込む方式のため、CSS 側は [data-theme='dark'] の1ブロックだけで済む
+ * （@media (prefers-color-scheme) を直接使うと手動トグルとの併存で
+ * 打ち消しルールが必要になりパレットが2箇所に重複するため採らない）。
+ * --canvas-paper は透過PNGの下地・PDFの紙面用のため、ダークでも白のまま固定する。
+ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #16181f;
+  --bg-soft: #1d2029;
+  --bg-sidebar: #10121a;
+  --border: #262a35;
+  --border-strong: #343a49;
+  --text: #e7e9ee;
+  --text-nav: #c3c8d6;
+  --text-muted: #8a90a0;
+  --text-faint: #666c7c;
+  --placeholder: #4a4f5e;
+  --accent: #4f86ff;
+  --accent-hover: #6c9aff;
+  --accent-soft: #1b2540;
+  --accent-text: #7da8ff;
+  --on-accent: #ffffff;
+  --teal: #2dd4a7;
+  --teal-soft: #0f2b24;
+  --green: #3ecf7e;
+  --danger: #ff6b5e;
+  --danger-soft: #3a1614;
+  --danger-border: #5c2622;
+  --warn: #ffb454;
+  --warn-soft: #3a2a0d;
+  --warn-border: #5c4318;
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.55);
+  --shadow-accent: 0 4px 12px rgba(79, 134, 255, 0.35);
+  --shadow-card: 0 6px 18px rgba(79, 134, 255, 0.16);
 }
 
 * {
@@ -248,6 +288,41 @@ button {
 
 .nav-item.is-active .nav-icon {
   color: var(--on-accent);
+}
+
+.sidebar-foot {
+  flex-shrink: 0;
+  padding-top: 10px;
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-nav);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-soft);
+}
+
+.app.is-collapsed .theme-toggle {
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.app.is-collapsed .theme-toggle-label {
+  display: none;
 }
 
 /* ---------- Content area ---------- */
