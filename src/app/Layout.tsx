@@ -2,11 +2,20 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { toolGroups, toolsByGroup } from '../tools/registry';
 import { useHeaderState } from './header';
-import { Icon } from './icons';
+import { Icon, type IconName } from './icons';
+import { useTheme } from './theme';
+import { type ThemeMode, themeLabel } from './themeLogic';
+
+const THEME_ICON: Record<ThemeMode, IconName> = {
+  system: 'monitor',
+  light: 'sun',
+  dark: 'moon',
+};
 
 export function Layout() {
   const { header } = useHeaderState();
   const [collapsed, setCollapsed] = useState(false);
+  const { mode, cycle } = useTheme();
 
   // ファイルをウィンドウ外にドロップした際にブラウザがファイルを開いてしまうのを防ぐ
   // （ドラッグ&ドロップ追加を全ツールで安定させる）。
@@ -65,6 +74,17 @@ export function Layout() {
           ))}
         </nav>
 
+        <div className="sidebar-foot">
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={cycle}
+            title={`テーマ：${themeLabel(mode)}（クリックで切替）`}
+          >
+            <Icon name={THEME_ICON[mode]} size={16} />
+            <span className="theme-toggle-label">{themeLabel(mode)}</span>
+          </button>
+        </div>
       </aside>
 
       <div className="content">

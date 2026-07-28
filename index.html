@@ -12,6 +12,23 @@
     <meta name="apple-mobile-web-app-title" content="Refile.studio" />
   </head>
   <body>
+    <script>
+      // React マウント前に data-theme を確定させ、初回描画時のライト→ダーク
+      // 切り替わり（FOUC）を防ぐ。ロジックは src/app/themeLogic.ts と重複するが
+      // バンドルの読み込みを待てないため、ここでは意図的にインライン実装している。
+      (function () {
+        try {
+          var stored = localStorage.getItem('refile.theme');
+          var mode = stored === 'light' || stored === 'dark' ? stored : 'system';
+          var prefersDark =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var resolved = mode === 'system' ? (prefersDark ? 'dark' : 'light') : mode;
+          document.documentElement.setAttribute('data-theme', resolved);
+        } catch (e) {
+          // localStorage 不可でも既定（light）のまま表示すればよいので無視
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

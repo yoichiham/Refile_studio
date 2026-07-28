@@ -98,6 +98,7 @@
 - [x] PWA：vite-plugin-pwa 設定（manifest・Service Worker・autoUpdate・TTF runtime cache）
 - [x] オフライン動作確認（ネット切断で各ツールが動く）
 - [x] 日本語フォントのオフライン取得を自動化：Markdown ツールを開くとバックグラウンドで自動プリフェッチ（`requestIdleCallback`、Save-Data/低速回線時は手動「今すぐ取得」ボタンに切替）（v1.5）
+- [x] ダークモード：システム/ライト/ダークの3値切替（サイドバー下部トグル）、`<html data-theme>` 方式でCSSは`[data-theme='dark']`1ブロックのみ、`localStorage`（`refile.theme`）に選択値のみ保存、FOUC対策のインラインスクリプトをindex.htmlに追加、PDFサムネイル等の紙面は`--canvas-paper`で白固定（v1.5）
 - [x] GitHub Pages デプロイ（GitHub Actions、https://yoichiham.github.io/Refile_studio/）
 - [x] README 作成・SPEC.md 更新（v1.3）
 
