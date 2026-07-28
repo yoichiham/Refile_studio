@@ -32,7 +32,24 @@ export function renderSettings(quality: Quality): RenderSettings {
 }
 
 /** 総ページ数の桁数でゼロ埋めしたページ画像ファイル名（ZIP 内で使用）。 */
-export function pageFileName(pageNumber: number, totalPages: number): string {
+export function pageFileName(pageNumber: number, totalPages: number, ext: string = 'jpg'): string {
   const width = String(totalPages).length;
-  return `page_${String(pageNumber).padStart(width, '0')}.jpg`;
+  return `page_${String(pageNumber).padStart(width, '0')}.${ext}`;
+}
+
+export type PdfImageFormat = 'jpeg' | 'png';
+
+/** 出力フォーマット選択 UI 用のラベル定義（順序＝表示順）。 */
+export const PDF_IMAGE_FORMATS: { value: PdfImageFormat; label: string }[] = [
+  { value: 'jpeg', label: 'JPEG' },
+  { value: 'png', label: 'PNG' },
+];
+
+export interface PdfImageFormatInfo {
+  mime: string;
+  ext: string;
+}
+
+export function imageFormatInfo(format: PdfImageFormat): PdfImageFormatInfo {
+  return format === 'png' ? { mime: 'image/png', ext: 'png' } : { mime: 'image/jpeg', ext: 'jpg' };
 }
