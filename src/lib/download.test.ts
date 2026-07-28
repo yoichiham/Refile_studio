@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { bytesToBlob, downloadBlob, downloadText } from './download';
+import { bytesToBlob, downloadBlob, downloadResults, downloadText } from './download';
 
 describe('downloadBlob', () => {
   beforeEach(() => {
@@ -52,6 +52,43 @@ describe('downloadText', () => {
     URL.revokeObjectURL = vi.fn();
     downloadText('# hi', 'a.md', 'text/markdown');
     expect(URL.createObjectURL).toHaveBeenCalled();
+  });
+});
+
+describe('downloadResults', () => {
+  beforeEach(() => {
+    URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url');
+    URL.revokeObjectURL = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('0件なら何もダウンロードしない', async () => {
+    await downloadResults([], 'out.zip');
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
+  });
+
+  it('1件なら単体ファイルとしてダウンロードする（元のファイル名のまま）', async () => {
+    const appendSpy = vi.spyOn(document.body, 'appendChild');
+    await downloadResults([{ name: 'photo.jpg', blob: new Blob(['x']) }], 'out.zip');
+    const anchor = appendSpy.mock.calls[0][0] as HTMLAnchorElement;
+    expect(anchor.download).toBe('photo.jpg');
+  });
+
+  it('2件以上なら ZIP 名でダウンロードする', async () => {
+    const appendSpy = vi.spyOn(document.body, 'appendChild');
+    await downloadResults(
+      [
+        { name: 'a.jpg', blob: new Blob(['a']) },
+        { name: 'b.jpg', blob: new Blob(['b']) },
+      ],
+      'out.zip',
+    );
+    const anchor = appendSpy.mock.calls[0][0] as HTMLAnchorElement;
+    expect(anchor.download).toBe('out.zip');
   });
 });
 
