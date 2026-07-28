@@ -1136,6 +1136,24 @@ input[type='range'] {
   cursor: not-allowed;
 }
 
+.batch-status {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.batch-status.is-running {
+  color: var(--accent-text);
+}
+
+.batch-status.is-done {
+  color: var(--teal);
+}
+
+.batch-status.is-error {
+  color: var(--danger);
+}
+
 .thumb-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
