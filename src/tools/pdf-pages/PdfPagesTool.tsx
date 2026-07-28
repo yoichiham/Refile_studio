@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import JSZip from 'jszip';
 import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
-import { downloadBlob } from '../../lib/download';
+import { downloadBlob, downloadResults } from '../../lib/download';
 import { rejectionMessage, partitionFiles } from '../../lib/fileIntake';
 import { withExtension } from '../../lib/filename';
 import { formatBytes } from '../../lib/format';
@@ -66,9 +65,7 @@ export function PdfPagesTool() {
         downloadBlob(await extractToSinglePdf(data, order), withExtension(file.name, 'pdf'));
       } else {
         const parts = await splitToPdfs(data, order);
-        const zip = new JSZip();
-        parts.forEach((part) => zip.file(part.name, part.blob));
-        downloadBlob(await zip.generateAsync({ type: 'blob' }), withExtension(file.name, 'zip'));
+        await downloadResults(parts, withExtension(file.name, 'zip'));
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : PDF_LOAD_ERROR);

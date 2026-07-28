@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import JSZip from 'jszip';
 import { ErrorMessage } from '../../lib/components/ErrorMessage';
 import { Dropzone } from '../../lib/components/Dropzone';
 import { Loading } from '../../lib/components/Loading';
-import { downloadBlob } from '../../lib/download';
+import { downloadResults } from '../../lib/download';
 import { rejectionMessage, partitionFiles } from '../../lib/fileIntake';
 import { withExtension } from '../../lib/filename';
 import { formatBytes } from '../../lib/format';
@@ -61,14 +60,10 @@ export function PdfToImageTool() {
       const images = await pdfToImages(data, quality, (current, total) =>
         setProgress({ current, total }),
       );
-      if (images.length === 1) {
-        downloadBlob(images[0].blob, withExtension(file.name, 'jpg'));
-      } else {
-        const zip = new JSZip();
-        images.forEach((img) => zip.file(img.name, img.blob));
-        const zipBlob = await zip.generateAsync({ type: 'blob' });
-        downloadBlob(zipBlob, withExtension(file.name, 'zip'));
-      }
+      // 1ページのみの場合は元PDF名ベースの名前にする（ページ番号名はZIP内でのみ使う）
+      const results =
+        images.length === 1 ? [{ ...images[0], name: withExtension(file.name, 'jpg') }] : images;
+      await downloadResults(results, withExtension(file.name, 'zip'));
     } catch (e) {
       setError(e instanceof Error ? e.message : PDF_LOAD_ERROR);
     } finally {
