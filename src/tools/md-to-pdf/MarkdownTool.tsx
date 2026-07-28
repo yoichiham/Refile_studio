@@ -10,6 +10,9 @@ import { Icon } from '../../app/icons';
 import { useDropzone } from '../../lib/useDropzone';
 import { buildMarkdownFile } from './mdFile';
 import { generateMarkdownPdf } from './generate';
+import { isJapaneseFontCached, prefetchJapaneseFont, shouldAutoPrefetch } from './fontCache';
+
+type FontStatus = 'checking' | 'ready' | 'loading' | 'unknown';
 
 type ViewMode = 'edit' | 'split' | 'preview';
 
@@ -33,6 +36,35 @@ export function MarkdownTool() {
   const [error, setError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [fontStatus, setFontStatus] = useState<FontStatus>('checking');
+
+  const runPrefetch = useCallback(() => {
+    setFontStatus('loading');
+    void prefetchJapaneseFont()
+      .then(() => setFontStatus('ready'))
+      .catch(() => setFontStatus('unknown'));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void isJapaneseFontCached().then((cached) => {
+      if (cancelled) return;
+      if (cached) {
+        setFontStatus('ready');
+        return;
+      }
+      setFontStatus('unknown');
+      const conn = (navigator as { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+      if (!shouldAutoPrefetch(conn)) return;
+      const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 200));
+      idle(() => {
+        if (!cancelled) runPrefetch();
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [runPrefetch]);
 
   const handleMdFileDrop = useCallback((files: File[]) => {
     const f = files.find((file) => file.name.endsWith('.md') || file.type === 'text/markdown');
@@ -163,6 +195,27 @@ export function MarkdownTool() {
     <div className="tool-content is-wide">
       {busy && <Loading label="PDF を生成中…" />}
       <ErrorMessage>{error || undefined}</ErrorMessage>
+
+      {fontStatus !== 'checking' && (
+        <p className="hint">
+          オフライン用フォント：
+          {fontStatus === 'ready' && '準備完了'}
+          {fontStatus === 'loading' && '取得中…（約8.8MB）'}
+          {fontStatus === 'unknown' && (
+            <>
+              未取得{' '}
+              <button
+                type="button"
+                className="link-button"
+                style={{ margin: 0, display: 'inline' }}
+                onClick={runPrefetch}
+              >
+                今すぐ取得
+              </button>
+            </>
+          )}
+        </p>
+      )}
 
       <div className={`md-split${mode !== 'split' ? ' is-single' : ''}`}>
         {mode !== 'preview' && (
