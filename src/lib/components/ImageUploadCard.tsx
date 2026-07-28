@@ -8,6 +8,8 @@ interface ImageUploadCardProps {
   metaLine?: string;
   accept?: string;
   multiple?: boolean;
+  /** 複数ファイル選択時の表示（例: "5 枚選択中"）。指定するとサムネイルの代わりにこちらを表示する。 */
+  multipleLabel?: string;
   onFiles: (files: File[]) => void;
 }
 
@@ -18,6 +20,7 @@ export function ImageUploadCard({
   metaLine,
   accept = 'image/png,image/jpeg,image/webp,image/gif,image/bmp',
   multiple = false,
+  multipleLabel,
   onFiles,
 }: ImageUploadCardProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,7 +49,15 @@ export function ImageUploadCard({
       onKeyDown={handleKeyDown}
       {...dropzoneProps}
     >
-      {previewUrl && fileName ? (
+      {multipleLabel ? (
+        <div className="upload-empty">
+          <div className="upload-empty-icon" aria-hidden>
+            <Icon name="image" size={32} />
+          </div>
+          <div className="upload-empty-label">{multipleLabel}</div>
+          <div className="upload-hint">クリックまたはドラッグで変更</div>
+        </div>
+      ) : previewUrl && fileName ? (
         <>
           <img className="upload-thumb" src={previewUrl} alt="" />
           <div className="upload-name">{fileName}</div>

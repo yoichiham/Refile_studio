@@ -5,6 +5,9 @@ export const INVALID_SIZE_ERROR = '正しいサイズを指定してください
 /** リサイズのパーセントプリセット。 */
 export const PERCENT_PRESETS = [25, 50, 75, 100, 150, 200] as const;
 
+/** 一括変換の上限件数（実機メモリを考慮した上限）。 */
+export const MAX_IMAGE_BATCH = 50;
+
 export type OutputFormat = 'png' | 'jpeg' | 'webp';
 
 export interface FormatInfo {
