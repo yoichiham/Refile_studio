@@ -1,23 +1,30 @@
 import { useEffect, useState } from 'react';
 import { ImageUploadCard } from '../../lib/components/ImageUploadCard';
 import { PreviewPane } from '../../lib/components/PreviewPane';
+import { ProgressBar } from '../../lib/components/ProgressBar';
 import { SizeCompare } from '../../lib/components/SizeCompare';
 import { ErrorMessage } from '../../lib/components/ErrorMessage';
+import { type BatchItemStatus, batchSummaryMessage, uniqueName } from '../../lib/batch';
 import { downloadBlob } from '../../lib/download';
-import { withExtension } from '../../lib/filename';
+import { rejectionMessage, partitionFiles } from '../../lib/fileIntake';
+import { timestampFileName, withExtension } from '../../lib/filename';
 import { formatBytes } from '../../lib/format';
 import { canvasToBlob, drawToCanvas, loadImageElement } from '../../lib/image';
 import { useObjectUrl } from '../../lib/useObjectUrl';
+import { useBatchRun } from '../../lib/useBatchRun';
 import { validateImageFile } from '../../lib/validation';
 import { useToolHeader } from '../../app/header';
 import { useToolState } from '../../app/session';
 import { Icon } from '../../app/icons';
 import { type ImageConvertResult, convertLoadedImage } from './convert';
 import {
+  type BatchResizeSpec,
   type CropRect,
   type OutputFormat,
+  MAX_IMAGE_BATCH,
   PERCENT_PRESETS,
   YOUTUBE_THUMBNAIL,
+  batchTargetSize,
   coverCropRect,
   findQualityForMaxSize,
   fitDimension,
@@ -32,15 +39,26 @@ const FORMATS: { value: OutputFormat; label: string }[] = [
   { value: 'webp', label: 'WebP' },
 ];
 
-/** リサイズとフォーマット変換を1画面で行う（単一画像）。 */
+type BatchResizeMode = 'percent' | 'longEdge';
+
+const STATUS_LABELS: Record<BatchItemStatus, string> = {
+  pending: '待機中',
+  running: '変換中…',
+  done: '完了',
+  error: '失敗',
+};
+
+/** リサイズとフォーマット変換を1画面で行う。1枚は詳細設定つき、複数枚は一括変換。 */
 export function ImageConvert() {
-  const [file, setFile] = useToolState<File | null>('image.file', null);
+  const [files, setFiles] = useToolState<File[]>('image.files', []);
   const [widthStr, setWidthStr] = useToolState('image.w', '');
   const [heightStr, setHeightStr] = useToolState('image.h', '');
   const [lock, setLock] = useToolState('image.lock', true);
   const [percent, setPercent] = useToolState<number | null>('image.percent', 100);
   const [format, setFormat] = useToolState<OutputFormat>('image.format', 'png');
   const [quality, setQuality] = useToolState('image.quality', 92);
+  const [batchResizeMode, setBatchResizeMode] = useToolState<BatchResizeMode>('image.batchResizeMode', 'percent');
+  const [longEdgeStr, setLongEdgeStr] = useToolState('image.longEdge', '1600');
 
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [output, setOutput] = useState<ImageConvertResult | null>(null);
@@ -51,7 +69,10 @@ export function ImageConvert() {
   // 元画像が意図せず引き伸ばされる（クロップなしで再エンコードされる）事故を防ぐ
   const [cropRect, setCropRect] = useToolState<CropRect | null>('image.cropRect', null);
   const [ytBusy, setYtBusy] = useState(false);
+  const batch = useBatchRun();
 
+  // 1枚のときだけ従来の詳細設定UI（クロップ・YouTubeプリセット・プレビュー）を使う
+  const file = files.length === 1 ? files[0] : null;
   const origBytes = file?.size ?? 0;
 
   // 再表示時（img はローカル）に保持された file から復元
@@ -74,30 +95,44 @@ export function ImageConvert() {
     };
   }, [file, img, setOrigUrl]);
 
-  const handleFiles = async (files: File[]) => {
-    const f = files[0];
-    const err = validateImageFile(f);
-    if (err) {
-      setError(err);
+  const handleFiles = async (incoming: File[]) => {
+    const { valid, rejected } = partitionFiles(incoming, validateImageFile);
+    if (valid.length > MAX_IMAGE_BATCH) {
+      setError(`一度に処理できるのは${MAX_IMAGE_BATCH}件までです`);
       return;
     }
-    try {
-      const image = await loadImageElement(f);
-      setFile(f);
-      setImg(image);
-      setOrigUrl(f);
-      setCropRect(null);
-      setWidthStr(String(image.naturalWidth));
-      setHeightStr(String(image.naturalHeight));
-      setPercent(100);
-      setFormat(formatFromMime(f.type));
-      setError('');
-    } catch {
-      setError('画像を読み込めませんでした');
+    if (valid.length === 0) {
+      setError(rejected.length > 0 ? rejectionMessage(rejected) : '');
+      return;
+    }
+    // D&D は既存の選択への追加ではなく置換（同じ設定をファイル群に適用するため）
+    setFiles(valid);
+    batch.reset();
+    setOutput(null);
+    setOutUrl(null);
+
+    if (valid.length === 1) {
+      try {
+        const image = await loadImageElement(valid[0]);
+        setImg(image);
+        setOrigUrl(valid[0]);
+        setCropRect(null);
+        setWidthStr(String(image.naturalWidth));
+        setHeightStr(String(image.naturalHeight));
+        setPercent(100);
+        setFormat(formatFromMime(valid[0].type));
+        setError(rejected.length > 0 ? rejectionMessage(rejected) : '');
+      } catch {
+        setError('画像を読み込めませんでした');
+      }
+    } else {
+      setImg(null);
+      setOrigUrl(null);
+      setError(rejected.length > 0 ? rejectionMessage(rejected) : '');
     }
   };
 
-  // 設定変更のたびに出力（プレビュー＋サイズ）を再計算
+  // 設定変更のたびに出力（プレビュー＋サイズ）を再計算（単一モードのみ）
   useEffect(() => {
     if (!img) return;
     const w = Number.parseInt(widthStr, 10);
@@ -193,8 +228,8 @@ export function ImageConvert() {
     if (file && output) downloadBlob(output.blob, withExtension(file.name, output.ext));
   };
 
-  const clearImage = () => {
-    setFile(null);
+  const clearFiles = () => {
+    setFiles([]);
     setImg(null);
     setCropRect(null);
     setWidthStr('');
@@ -203,21 +238,52 @@ export function ImageConvert() {
     setOutput(null);
     setOrigUrl(null);
     setOutUrl(null);
+    batch.reset();
     setError('');
+  };
+
+  const buildBatchResizeSpec = (): BatchResizeSpec => {
+    if (batchResizeMode === 'longEdge') {
+      const px = Number.parseInt(longEdgeStr, 10);
+      return Number.isFinite(px) && px > 0 ? { kind: 'longEdge', px } : { kind: 'none' };
+    }
+    return percent != null ? { kind: 'percent', percent } : { kind: 'none' };
+  };
+
+  const handleConvertBatch = async () => {
+    setError('');
+    const taken = new Set<string>();
+    const spec = buildBatchResizeSpec();
+    await batch.run(
+      files,
+      async (f) => {
+        const image = await loadImageElement(f);
+        try {
+          const { width, height } = batchTargetSize(image.naturalWidth, image.naturalHeight, spec);
+          const result = await convertLoadedImage(image, { width, height, format, quality });
+          return { name: uniqueName(taken, withExtension(f.name, result.ext)), blob: result.blob };
+        } finally {
+          // 早期解放（多数の画像を逐次処理する間、参照が積み上がらないように）
+          image.src = '';
+        }
+      },
+      { zipName: timestampFileName('zip') },
+    );
   };
 
   useToolHeader(
     {
       icon: <Icon name="convert" />,
       title: '画像変換',
-      meta: file?.name,
-      actions: (
-        <button type="button" className="topbar-btn is-primary" onClick={download} disabled={!output}>
-          <Icon name="download" size={15} /> ダウンロード
-        </button>
-      ),
+      meta: files.length === 1 ? files[0].name : files.length > 1 ? `${files.length} 枚` : undefined,
+      actions:
+        files.length <= 1 ? (
+          <button type="button" className="topbar-btn is-primary" onClick={download} disabled={!output}>
+            <Icon name="download" size={15} /> ダウンロード
+          </button>
+        ) : undefined,
     },
-    [file, output],
+    [files, output],
   );
 
   return (
@@ -226,12 +292,14 @@ export function ImageConvert() {
         fileName={file?.name}
         previewUrl={origUrl}
         metaLine={img ? `${img.naturalWidth} × ${img.naturalHeight}px ・ ${formatBytes(origBytes)}` : undefined}
+        multiple
+        multipleLabel={files.length > 1 ? `${files.length} 枚選択中` : undefined}
         onFiles={handleFiles}
       />
 
-      {file && (
+      {files.length > 0 && (
         <div className="btn-row">
-          <button type="button" className="btn-delete" onClick={clearImage}>
+          <button type="button" className="btn-delete" onClick={clearFiles}>
             <Icon name="trash" size={14} /> 選択した画像を削除
           </button>
         </div>
@@ -356,6 +424,138 @@ export function ImageConvert() {
             <PreviewPane url={outUrl} />
           </div>
         </div>
+      )}
+
+      {files.length > 1 && (
+        <>
+          <h3 className="section-label">リサイズ（一括）</h3>
+          <div className="segmented">
+            <button
+              type="button"
+              className={`seg${batchResizeMode === 'percent' ? ' is-active' : ''}`}
+              onClick={() => setBatchResizeMode('percent')}
+            >
+              パーセント指定
+            </button>
+            <button
+              type="button"
+              className={`seg${batchResizeMode === 'longEdge' ? ' is-active' : ''}`}
+              onClick={() => setBatchResizeMode('longEdge')}
+            >
+              長辺を指定
+            </button>
+          </div>
+
+          {batchResizeMode === 'percent' ? (
+            <div className="presets">
+              {PERCENT_PRESETS.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  className={`preset${percent === p ? ' is-active' : ''}`}
+                  onClick={() => setPercent(p)}
+                >
+                  {p}%
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="field" style={{ maxWidth: 200 }}>
+              <label className="field-label" htmlFor="batch-long-edge">
+                長辺 (PX)
+              </label>
+              <input
+                id="batch-long-edge"
+                type="number"
+                min={1}
+                max={9999}
+                value={longEdgeStr}
+                onChange={(e) => setLongEdgeStr(e.target.value)}
+              />
+            </div>
+          )}
+          <p className="field-note">
+            複数ファイルへの一括適用のため、縦横比を保つ指定のみ選べます（幅・高さの個別指定や
+            YouTube サムネイルは、画像ごとに縦横比が異なると歪んでしまうため使えません）。元の
+            長辺より大きい値を指定しても拡大はしません。
+          </p>
+
+          <h3 className="section-label" style={{ marginTop: 22 }}>
+            フォーマット
+          </h3>
+          <div className="segmented">
+            {FORMATS.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                className={`seg${format === f.value ? ' is-active' : ''}`}
+                onClick={() => setFormat(f.value)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {format === 'png' ? (
+            <p className="field-note">PNG は可逆（ロスレス）形式のため、品質の指定はありません。</p>
+          ) : (
+            <div className="field" style={{ maxWidth: 360 }}>
+              <div className="slider-row">
+                <label className="field-label" style={{ margin: 0 }} htmlFor="batch-q">
+                  品質
+                </label>
+                <span className="slider-value">{quality}%</span>
+              </div>
+              <input
+                id="batch-q"
+                type="range"
+                min={1}
+                max={100}
+                value={quality}
+                onChange={(e) => setQuality(Number(e.target.value))}
+              />
+            </div>
+          )}
+
+          <ErrorMessage>{error || undefined}</ErrorMessage>
+
+          <ul className="file-list">
+            {files.map((f, index) => (
+              <li key={`${f.name}-${index}`}>
+                <span className="file-order">{index + 1}.</span>
+                <span className="file-name">{f.name}</span>
+                <span className={`batch-status is-${batch.statuses[index] ?? 'pending'}`}>
+                  {STATUS_LABELS[batch.statuses[index] ?? 'pending']}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          {batch.failures.length > 0 && !batch.busy && (
+            <ErrorMessage tone="warn">
+              {batchSummaryMessage(files.length - batch.failures.length, batch.failures.length)}
+            </ErrorMessage>
+          )}
+
+          <div className="btn-row">
+            <button type="button" className="btn" onClick={handleConvertBatch} disabled={batch.busy}>
+              変換してダウンロード
+            </button>
+            {batch.busy && (
+              <button type="button" className="btn btn-secondary" onClick={batch.cancel}>
+                中止
+              </button>
+            )}
+          </div>
+
+          {batch.progress && (
+            <ProgressBar
+              done={batch.progress.done}
+              total={batch.progress.total}
+              label={`変換中… ${batch.progress.done} / ${batch.progress.total} 件（${batch.progress.currentName}）`}
+            />
+          )}
+        </>
       )}
     </>
   );
