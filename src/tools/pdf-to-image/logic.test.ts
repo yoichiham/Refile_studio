@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pageFileName, renderSettings } from './logic';
+import { imageFormatInfo, pageFileName, renderSettings } from './logic';
 
 describe('renderSettings', () => {
   it('低画質は 96dpi / JPEG 70%', () => {
@@ -17,9 +17,22 @@ describe('renderSettings', () => {
 });
 
 describe('pageFileName', () => {
-  it('総ページ数の桁数でゼロ埋めする', () => {
+  it('総ページ数の桁数でゼロ埋めする（既定拡張子は jpg）', () => {
     expect(pageFileName(1, 9)).toBe('page_1.jpg');
     expect(pageFileName(1, 10)).toBe('page_01.jpg');
     expect(pageFileName(12, 100)).toBe('page_012.jpg');
+  });
+
+  it('拡張子を指定できる', () => {
+    expect(pageFileName(7, 100, 'png')).toBe('page_007.png');
+  });
+});
+
+describe('imageFormatInfo', () => {
+  it('jpeg の mime/拡張子', () => {
+    expect(imageFormatInfo('jpeg')).toEqual({ mime: 'image/jpeg', ext: 'jpg' });
+  });
+  it('png の mime/拡張子', () => {
+    expect(imageFormatInfo('png')).toEqual({ mime: 'image/png', ext: 'png' });
   });
 });
