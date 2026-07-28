@@ -1169,13 +1169,26 @@ input[type='range'] {
   background: var(--bg);
 }
 
-.thumb img {
-  max-width: 100%;
+/* 回転表示用の固定サイズ枠。90/270度回転で縦横が入れ替わっても
+   はみ出さないよう overflow:hidden にし、画像側は正方形に収まる
+   サイズへ制限する（回転後も同じ正方形に収まる保証のため）。 */
+.thumb-img-wrap {
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.thumb-img-wrap img {
+  max-width: 130px;
+  max-height: 130px;
+  width: auto;
   height: auto;
-  display: block;
-  margin: 0 auto 6px;
   border: 1px solid var(--border);
   border-radius: 4px;
+  transition: transform 0.15s ease;
 }
 
 .thumb-meta {
@@ -1185,6 +1198,7 @@ input[type='range'] {
 
 .thumb-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 4px;
   margin-top: 6px;
@@ -1203,6 +1217,20 @@ input[type='range'] {
 .thumb-actions button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.empty-state {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  margin: 18px 0;
+}
+
+.empty-state p {
+  margin: 0 0 12px;
+  color: var(--text-muted);
 }
 
 /* ---------- File / PDF サムネイル（リスト行用） ---------- */
