@@ -97,6 +97,7 @@
 - [x] ビルド成功確認・preview 確認
 - [x] PWA：vite-plugin-pwa 設定（manifest・Service Worker・autoUpdate・TTF runtime cache）
 - [x] オフライン動作確認（ネット切断で各ツールが動く）
+- [x] 日本語フォントのオフライン取得を自動化：Markdown ツールを開くとバックグラウンドで自動プリフェッチ（`requestIdleCallback`、Save-Data/低速回線時は手動「今すぐ取得」ボタンに切替）（v1.5）
 - [x] GitHub Pages デプロイ（GitHub Actions、https://yoichiham.github.io/Refile_studio/）
 - [x] README 作成・SPEC.md 更新（v1.3）
 

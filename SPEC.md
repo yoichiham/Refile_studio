@@ -243,7 +243,7 @@ iPhone の HEIC/HEIF 写真を JPEG/PNG に変換する。1枚でも複数枚で
 - セキュリティ/プライバシー：サーバー送信なし。外部解析・トラッキングなし。
 - コスト：静的ホスティングのみ（実質ゼロ）。
 - バンドル：Noto Sans JP の全グリフ埋め込みはサイズ過大 → フォントは動的ロードし vfs 登録（初回PDF生成時に fetch）。lamejs（MP3）・heic2any（HEIC）も各ツール初回利用時に動的 import し、メインバンドルから分離。
-- PWA：オフライン利用可能（Service Worker キャッシュ）。更新は autoUpdate。動的 import される lamejs/heic2any の JS チャンクは build 成果物としてプリキャッシュ対象に含まれるため初回ロード後は利用可能。ただし Markdown→PDF が使う日本語フォント（Noto Sans JP、計8.8MB）はプリキャッシュ対象外で runtime cache（CacheFirst）管理のため、**オンライン中に一度も Markdown→PDF を実行していない状態でオフラインになった場合のみ**PDF出力が失敗する。
+- PWA：オフライン利用可能（Service Worker キャッシュ）。更新は autoUpdate。動的 import される lamejs/heic2any の JS チャンクは build 成果物としてプリキャッシュ対象に含まれるため初回ロード後は利用可能。ただし Markdown→PDF が使う日本語フォント（Noto Sans JP、計8.8MB）はプリキャッシュ対象外で runtime cache（CacheFirst）管理。全訪問者に強制ダウンロードさせるとオーバーヘッドが大きいため、Markdown ツールを開いた時点でバックグラウンド取得（`requestIdleCallback`）する方式を採用。Save-Data 有効時・低速回線（2g/slow-2g）時は自動取得せず、手動の「今すぐ取得」ボタンのみ提供（`src/tools/md-to-pdf/fontCache.ts`）。**一度もこの自動/手動取得が走らないままオフラインになった場合のみ**PDF出力が失敗する。
 
 ## 9. 主要トレードオフ・既知の制約
 
@@ -270,4 +270,4 @@ iPhone の HEIC/HEIF 写真を JPEG/PNG に変換する。1枚でも複数枚で
 - GitHub Pages にデプロイ後、`#/<tool-id>` 直アクセス・リロードで各ツールが表示される（404にならない）。
 - どの操作でもネットワークにファイル/テキストが送信されない（DevToolsで送信なしを確認）。
 - 全ファイル系ツールでドラッグ&ドロップでファイル投入できる。PDF系ツール（PDF→画像・PDF結合・PDFページ操作）もPDF以外のファイルをD&Dすると投入時点で弾かれ、対象ファイル名入りのエラーが表示される（実行ボタンを押すまで気づけない、ということがない）。
-- オフライン（ネット切断）でも初回ロード済みなら各ツールが動作する（Markdown→PDF はオンライン中に一度実行してフォントを取得済みであること）。
+- オフライン（ネット切断）でも初回ロード済みなら各ツールが動作する（Markdown→PDF はオンライン中に一度 Markdown ツールを開いて日本語フォントを取得済みであること。通常回線であれば自動取得される）。
